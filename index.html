@@ -233,6 +233,19 @@
   .day-icon{flex:none;width:20px;height:20px;color:var(--day-accent, var(--mustard-dark));}
   .day-icon svg{width:100%;height:100%;}
   .day-card h2 .theme{font-weight:400;color:var(--ink-muted);font-size:13px;}
+  .dice-btn{
+    margin-left:auto;
+    flex:none;
+    background:transparent;
+    border:1px solid var(--paper-line);
+    color:var(--mustard-dark);
+    font-size:11px;
+    padding:4px 8px;
+    border-radius:6px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .dice-btn:hover{background:var(--check-bg);}
   .cat{
     font-family: Georgia, serif;
     font-weight:700;
@@ -504,6 +517,7 @@
     <button class="week-nav-btn" id="week-prev-btn" title="Vorherige Woche">&lsaquo;</button>
     <select id="week-select"></select>
     <button class="week-nav-btn" id="week-next-btn" title="Nächste Woche">&rsaquo;</button>
+    <button class="week-nav-btn" id="week-settings-btn" title="Ziele dieser Woche bearbeiten">&#9881;</button>
     <button class="week-nav-btn week-delete-btn" id="week-delete-btn" title="Diese Woche löschen">&times;</button>
     <button class="sync-btn" id="week-add-btn">+ Neue Woche</button>
   </div>
@@ -566,6 +580,34 @@
     <p id="nw-msg" class="login-msg"></p>
   </div>
 </div>
+
+<div id="settings-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h2 class="modal-title">Ziele dieser Woche</h2>
+    <p class="modal-sub" id="settings-sub">Anpassen und mit denselben Gerichten neu berechnen, oder Einschränkungen ändern.</p>
+
+    <label class="modal-label">Tagesziel Kalorien</label>
+    <input type="number" id="st-kcal" value="1537" min="1000" max="4000" step="10">
+
+    <label class="modal-label">Tagesziel Eiweiß (g)</label>
+    <input type="number" id="st-protein" value="113" min="30" max="300" step="1">
+
+    <label class="modal-label">Ernährungseinschränkungen</label>
+    <div class="modal-checks">
+      <label><input type="checkbox" id="st-veg"> Vegetarisch</label>
+      <label><input type="checkbox" id="st-nofish"> Kein Fisch</label>
+      <label><input type="checkbox" id="st-nopork"> Kein Schweinefleisch</label>
+      <label><input type="checkbox" id="st-nonuts"> Keine Nüsse</label>
+    </div>
+
+    <div class="modal-row">
+      <button class="sync-btn" id="st-cancel">Abbrechen</button>
+      <button class="sync-btn nw-primary" id="st-apply">Übernehmen</button>
+    </div>
+    <p id="st-msg" class="login-msg"></p>
+  </div>
+</div>
+
 
 <script>
 const DEFAULT_MEALS = [
@@ -1013,6 +1055,31 @@ function prioritizeUnused(pool, recentIds){
   return fresh.concat(recent);
 }
 
+const BREAKFAST_BY_ID = Object.fromEntries(BREAKFAST_POOL.map(d => [d.id, d]));
+const MAIN_BY_ID = Object.fromEntries(MAIN_POOL.map(d => [d.id, d]));
+const SNACK_BY_ID = Object.fromEntries(SNACK_POOL.map(d => [d.id, d]));
+
+function buildDayFromDishes(weekday, dishesBySlot, kcalTarget, proteinTarget, restrictions){
+  const labels = ["Frühstück", "Mittagessen", "Abendessen", "Snack"];
+  const rows = dishesBySlot.map((dish, slot) => {
+    const items = applyRestrictionsToDish(dish.items, restrictions);
+    const kcalSlotTarget = Math.round(kcalTarget * MEAL_KCAL_SHARE[slot]);
+    const pSlotTarget = Math.round(proteinTarget * MEAL_P_SHARE[slot]);
+    const scaled = scaleDish(items, kcalSlotTarget, pSlotTarget);
+    return { label: labels[slot], desc: `${dish.name} – ${scaled.desc}`, kcal: scaled.kcal, p: scaled.p, price: scaled.price, _items: scaled._items, _dishId: dish.id };
+  });
+  const totalKcal = rows.reduce((s,r) => s + r.kcal, 0);
+  const totalP = rows.reduce((s,r) => s + r.p, 0);
+  const totalPrice = Math.round(rows.reduce((s,r) => s + r.price, 0)*100)/100;
+  return {
+    day: weekday,
+    theme: dishesBySlot[1].name,
+    total: { kcal: totalKcal, p: totalP, price: totalPrice },
+    sport: { label: "Optionaler Sporttag-Snack (kcal-/proteinreich, nach Bedarf ergänzen)", kcal: 300, p: 20 },
+    rows
+  };
+}
+
 function generatePlan(kcalTarget, proteinTarget, restrictions, recentDishIds){
   recentDishIds = recentDishIds || { breakfast: new Set(), main: new Set(), snack: new Set() };
 
@@ -1021,35 +1088,49 @@ function generatePlan(kcalTarget, proteinTarget, restrictions, recentDishIds){
   const snacks = prioritizeUnused(SNACK_POOL, recentDishIds.snack).slice(0, 7);
 
   const meals = WEEKDAYS.map((weekday, i) => {
-    const bfDish = breakfasts[i];
-    const lunchDish = mains[i*2];
-    const dinnerDish = mains[i*2 + 1];
-    const snackDish = snacks[i];
-
-    const dishes = [bfDish, lunchDish, dinnerDish, snackDish];
-    const labels = ["Frühstück", "Mittagessen", "Abendessen", "Snack"];
-
-    const rows = dishes.map((dish, slot) => {
-      const items = applyRestrictionsToDish(dish.items, restrictions);
-      const kcalSlotTarget = Math.round(kcalTarget * MEAL_KCAL_SHARE[slot]);
-      const pSlotTarget = Math.round(proteinTarget * MEAL_P_SHARE[slot]);
-      const scaled = scaleDish(items, kcalSlotTarget, pSlotTarget);
-      return { label: labels[slot], desc: `${dish.name} – ${scaled.desc}`, kcal: scaled.kcal, p: scaled.p, price: scaled.price, _items: scaled._items, _dishId: dish.id };
-    });
-
-    const totalKcal = rows.reduce((s,r) => s + r.kcal, 0);
-    const totalP = rows.reduce((s,r) => s + r.p, 0);
-    const totalPrice = Math.round(rows.reduce((s,r) => s + r.price, 0)*100)/100;
-
-    return {
-      day: weekday,
-      theme: lunchDish.name,
-      total: { kcal: totalKcal, p: totalP, price: totalPrice },
-      sport: { label: "Optionaler Sporttag-Snack (kcal-/proteinreich, nach Bedarf ergänzen)", kcal: 300, p: 20 },
-      rows
-    };
+    const dishesBySlot = [breakfasts[i], mains[i*2], mains[i*2 + 1], snacks[i]];
+    return buildDayFromDishes(weekday, dishesBySlot, kcalTarget, proteinTarget, restrictions);
   });
 
+  const data = buildShoppingFromMeals(meals);
+  return { meals, data };
+}
+
+// Behält die bereits gewählten Gerichte einer Woche bei, skaliert sie nur neu auf geänderte Ziele/Einschränkungen.
+function regeneratePlanKeepDishes(existingMeals, kcalTarget, proteinTarget, restrictions){
+  const pools = [BREAKFAST_BY_ID, MAIN_BY_ID, MAIN_BY_ID, SNACK_BY_ID];
+  const meals = existingMeals.map(day => {
+    const dishesBySlot = day.rows.map((row, slot) => pools[slot][row._dishId] || (slot===0 ? BREAKFAST_POOL[0] : slot===3 ? SNACK_POOL[0] : MAIN_POOL[0]));
+    return buildDayFromDishes(day.day, dishesBySlot, kcalTarget, proteinTarget, restrictions);
+  });
+  const data = buildShoppingFromMeals(meals);
+  return { meals, data };
+}
+
+// Würfelt nur die Gerichte eines einzelnen Tages neu, Rest der Woche bleibt unverändert.
+function randomizeSingleDay(existingMeals, dayIndex, kcalTarget, proteinTarget, restrictions){
+  const usedElsewhere = { breakfast: new Set(), main: new Set(), snack: new Set() };
+  existingMeals.forEach((day, i) => {
+    if (i === dayIndex) return;
+    day.rows.forEach((row, slot) => {
+      if (!row._dishId) return;
+      if (slot === 0) usedElsewhere.breakfast.add(row._dishId);
+      else if (slot === 1 || slot === 2) usedElsewhere.main.add(row._dishId);
+      else usedElsewhere.snack.add(row._dishId);
+    });
+  });
+  const currentDay = existingMeals[dayIndex];
+  const currentIds = new Set(currentDay.rows.map(r => r._dishId));
+
+  const bfPool = prioritizeUnused(BREAKFAST_POOL, new Set([...usedElsewhere.breakfast, ...currentIds]));
+  const mainPool = prioritizeUnused(MAIN_POOL, new Set([...usedElsewhere.main, ...currentIds]));
+  const snackPool = prioritizeUnused(SNACK_POOL, new Set([...usedElsewhere.snack, ...currentIds]));
+
+  const dishesBySlot = [bfPool[0], mainPool[0], mainPool[1], snackPool[0]];
+  const newDay = buildDayFromDishes(currentDay.day, dishesBySlot, kcalTarget, proteinTarget, restrictions);
+
+  const meals = existingMeals.slice();
+  meals[dayIndex] = newDay;
   const data = buildShoppingFromMeals(meals);
   return { meals, data };
 }
@@ -1304,7 +1385,7 @@ function buildMealsPanel(){
   const panel = document.createElement('div');
   panel.className = 'panel active';
   panel.id = 'panel-meals';
-  MEALS.forEach(day => {
+  MEALS.forEach((day, dayIdx) => {
     const card = document.createElement('div');
     card.className = 'day-card';
     const style = DAY_STYLE[day.day] || {color:'#B9AE8F', icon:''};
@@ -1316,8 +1397,12 @@ function buildMealsPanel(){
     let totalHtml = '<div class="day-total"><div></div><div>Tagessumme</div><div class="meal-kcal">' + fmtKcal(day.total.kcal, day.total.approx) + '</div><div class="meal-p">' + fmtP(day.total.p, day.total.approx) + '</div><div class="meal-price">' + fmtPrice(day.total.price, day.total.approx) + '</div></div>';
     let sportHtml = '<div class="day-sport"><div></div><div>+ Sporttag: ' + day.sport.label + '</div><div class="meal-kcal">+' + Math.round(day.sport.kcal) + '</div><div class="meal-p">+' + Math.round(day.sport.p) + ' g</div><div class="meal-price"></div></div>';
     let noteHtml = day.note ? '<div class="meal-note">' + day.note + '</div>' : '';
-    card.innerHTML = '<h2><span class="day-icon">' + style.icon + '</span>' + day.day + ' <span class="theme">– ' + day.theme + '</span></h2>' + headerHtml + rowsHtml + totalHtml + sportHtml + noteHtml;
+    let diceHtml = currentPlanIsGenerated ? '<button class="dice-btn" data-day-idx="' + dayIdx + '" title="Neue Gerichte nur für diesen Tag würfeln">&#127922; Neu würfeln</button>' : '';
+    card.innerHTML = '<h2><span class="day-icon">' + style.icon + '</span>' + day.day + ' <span class="theme">– ' + day.theme + '</span>' + diceHtml + '</h2>' + headerHtml + rowsHtml + totalHtml + sportHtml + noteHtml;
     panel.appendChild(card);
+  });
+  panel.querySelectorAll('.dice-btn').forEach(btn => {
+    btn.onclick = () => randomizeDayInUI(parseInt(btn.dataset.dayIdx, 10));
   });
   return panel;
 }
@@ -1738,14 +1823,18 @@ function updateDateRangeDisplay(){
   }
 }
 
+let currentPlanIsGenerated = false;
+
 async function applyWeekPlan(weekId){
   const plan = await loadPlanForWeek(weekId);
   if (plan && plan.meals && plan.data) {
     MEALS = plan.meals;
     DATA = plan.data;
+    currentPlanIsGenerated = true;
   } else {
     MEALS = DEFAULT_MEALS;
     DATA = DEFAULT_DATA;
+    currentPlanIsGenerated = false;
   }
   buildUI();
 }
@@ -1866,6 +1955,82 @@ document.getElementById('nw-generate').onclick = async () => {
     msg.textContent = 'Fehler beim Erstellen: ' + e.message;
   }
 };
+
+// ==== EINSTELLUNGEN BEARBEITEN (gleiche Gerichte, neue Ziele) ====
+document.getElementById('week-settings-btn').onclick = () => {
+  const meta = weeksMeta[currentWeekId] || {};
+  document.getElementById('st-kcal').value = meta.kcalGoal || 1537;
+  document.getElementById('st-protein').value = meta.proteinGoal || 113;
+  const r = meta.restrictions || {};
+  document.getElementById('st-veg').checked = !!r.vegetarian;
+  document.getElementById('st-nofish').checked = !!r.noFish;
+  document.getElementById('st-nopork').checked = !!r.noPork;
+  document.getElementById('st-nonuts').checked = !!r.noNuts;
+  document.getElementById('settings-sub').textContent = currentPlanIsGenerated
+    ? 'Anpassen und mit denselben Gerichten neu berechnen.'
+    : 'Diese Woche nutzt noch die Standardvorlage. Beim Übernehmen wird ein neuer, individueller Plan erstellt.';
+  document.getElementById('st-msg').textContent = '';
+  document.getElementById('settings-modal').classList.add('show');
+};
+
+document.getElementById('st-cancel').onclick = () => {
+  document.getElementById('settings-modal').classList.remove('show');
+};
+
+document.getElementById('st-apply').onclick = async () => {
+  const msg = document.getElementById('st-msg');
+  const kcal = parseInt(document.getElementById('st-kcal').value, 10) || 1537;
+  const protein = parseInt(document.getElementById('st-protein').value, 10) || 113;
+  const restrictions = {
+    vegetarian: document.getElementById('st-veg').checked,
+    noFish: document.getElementById('st-nofish').checked,
+    noPork: document.getElementById('st-nopork').checked,
+    noNuts: document.getElementById('st-nonuts').checked
+  };
+
+  msg.style.color = 'var(--ink-muted)';
+  msg.textContent = 'Wird aktualisiert…';
+
+  try {
+    const plan = currentPlanIsGenerated
+      ? regeneratePlanKeepDishes(MEALS, kcal, protein, restrictions)
+      : generatePlan(kcal, protein, restrictions, null);
+
+    weeksMeta[currentWeekId] = { ...weeksMeta[currentWeekId], kcalGoal: kcal, proteinGoal: protein, restrictions };
+    await saveWeekMeta(currentWeekId, weeksMeta[currentWeekId]);
+    await savePlanForWeek(currentWeekId, plan);
+
+    MEALS = plan.meals;
+    DATA = plan.data;
+    currentPlanIsGenerated = true;
+    buildUI();
+    document.getElementById('settings-modal').classList.remove('show');
+    await loadState();
+  } catch(e) {
+    msg.style.color = '#B5563E';
+    msg.textContent = 'Fehler: ' + e.message;
+  }
+};
+
+// ==== EINZELNEN TAG NEU WÜRFELN ====
+async function randomizeDayInUI(dayIdx){
+  if (!currentPlanIsGenerated) return;
+  const meta = weeksMeta[currentWeekId] || {};
+  const kcal = meta.kcalGoal || 1537;
+  const protein = meta.proteinGoal || 113;
+  const restrictions = meta.restrictions || {};
+
+  try {
+    const plan = randomizeSingleDay(MEALS, dayIdx, kcal, protein, restrictions);
+    await savePlanForWeek(currentWeekId, plan);
+    MEALS = plan.meals;
+    DATA = plan.data;
+    buildUI();
+    await loadState();
+  } catch(e) {
+    alert('Würfeln fehlgeschlagen: ' + e.message);
+  }
+}
 </script>
 
 </body>
