@@ -408,6 +408,13 @@
     font-weight:600;
     cursor:pointer;
   }
+  .week-delete-btn{
+    color:#E29A7D;
+    border-color:#6B4A3F;
+  }
+  .week-delete-btn:hover{
+    background:#5A3A2A;
+  }
   .modal-overlay{
     display:none;
     position:fixed;
@@ -497,6 +504,7 @@
     <button class="week-nav-btn" id="week-prev-btn" title="Vorherige Woche">&lsaquo;</button>
     <select id="week-select"></select>
     <button class="week-nav-btn" id="week-next-btn" title="Nächste Woche">&rsaquo;</button>
+    <button class="week-nav-btn week-delete-btn" id="week-delete-btn" title="Diese Woche löschen">&times;</button>
     <button class="sync-btn" id="week-add-btn">+ Neue Woche</button>
   </div>
 
@@ -1236,6 +1244,15 @@ function weekPlanPath(weekId){
   return `users/${authState.uid}/weeks/${weekId}/plan`;
 }
 
+function weekDataPath(weekId){
+  return `users/${authState.uid}/weeks/${weekId}`;
+}
+
+async function deleteWeek(weekId){
+  await firebaseRequest(weekDataPath(weekId), { method: 'DELETE' });
+  await firebaseRequest(`${weeksMetaPath()}/${weekId}`, { method: 'DELETE' });
+}
+
 async function savePlanForWeek(weekId, plan){
   return firebaseRequest(weekPlanPath(weekId), {
     method: 'PUT',
@@ -1305,6 +1322,8 @@ function buildMealsPanel(){
   return panel;
 }
 
+let currentTabIndex = 0;
+
 function buildUI(){
   const tabsEl = document.getElementById('tabs');
   const panelsEl = document.getElementById('panels');
@@ -1312,21 +1331,23 @@ function buildUI(){
   panelsEl.innerHTML = "";
 
   const mealsTab = document.createElement('button');
-  mealsTab.className = 'tab active';
+  mealsTab.className = 'tab' + (currentTabIndex === 0 ? ' active' : '');
   mealsTab.innerHTML = 'Mahlzeiten<span class="sub">7 Tage</span>';
   mealsTab.onclick = () => switchTab(0);
   tabsEl.appendChild(mealsTab);
-  panelsEl.appendChild(buildMealsPanel());
+  const mealsPanel = buildMealsPanel();
+  if (currentTabIndex !== 0) mealsPanel.classList.remove('active');
+  panelsEl.appendChild(mealsPanel);
 
   DATA.forEach((einkauf, ei) => {
     const tab = document.createElement('button');
-    tab.className = 'tab';
+    tab.className = 'tab' + (currentTabIndex === ei+1 ? ' active' : '');
     tab.innerHTML = einkauf.label + '<span class="sub">' + einkauf.day + '</span>';
     tab.onclick = () => switchTab(ei+1);
     tabsEl.appendChild(tab);
 
     const panel = document.createElement('div');
-    panel.className = 'panel';
+    panel.className = 'panel' + (currentTabIndex === ei+1 ? ' active' : '');
     panel.id = 'panel-' + (ei+1);
     panel.insertAdjacentHTML('beforeend', '<div class="complete-badge" id="complete-'+ei+'">Einkauf '+einkauf.id+' komplett – alles im Wagen</div>');
 
@@ -1367,6 +1388,7 @@ function buildUI(){
 }
 
 function switchTab(idx){
+  currentTabIndex = idx;
   document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===idx));
   document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===idx));
 }
@@ -1771,6 +1793,29 @@ document.getElementById('week-next-btn').onclick = () => {
   const ids = sortedWeekIds();
   const idx = ids.indexOf(currentWeekId);
   if (idx < ids.length - 1) switchToWeek(ids[idx + 1]);
+};
+
+document.getElementById('week-delete-btn').onclick = async () => {
+  const ids = sortedWeekIds();
+  if (ids.length <= 1) {
+    alert('Die letzte verbleibende Woche kann nicht gelöscht werden.');
+    return;
+  }
+  const meta = weeksMeta[currentWeekId];
+  const label = meta ? `${fmtDateDE(new Date(meta.start))} – ${fmtDateDE(new Date(meta.end))}` : currentWeekId;
+  if (!confirm(`Woche ${label} wirklich löschen? Plan und Einkaufshaken gehen dabei unwiderruflich verloren.`)) return;
+
+  const idx = ids.indexOf(currentWeekId);
+  const deletedId = currentWeekId;
+  const nextId = ids[idx > 0 ? idx - 1 : idx + 1];
+
+  try {
+    await deleteWeek(deletedId);
+    delete weeksMeta[deletedId];
+    await switchToWeek(nextId);
+  } catch(e) {
+    alert('Löschen fehlgeschlagen: ' + e.message);
+  }
 };
 
 document.getElementById('week-add-btn').onclick = () => {
