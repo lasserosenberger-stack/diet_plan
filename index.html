@@ -808,6 +808,10 @@ const NUTRI = {
   tomatensauce:      {kcal:35,  p:1.5, cat:"Vorrat", price:0.003, unit:"g"},
   hackfleisch:       {kcal:200, p:19,  cat:"Fleisch & Fisch", price:0.01, unit:"g", role:"protein", pork:true, sub:"kidneybohnen"},
   ananas:            {kcal:50,  p:0.5, cat:"Vorrat", price:0.00625, unit:"g"},
+  kichererbsen:      {kcal:164, p:8.9, cat:"Vorrat", price:0.375, unit:"g", role:"protein", veg:true},
+  currygewuerz:      {kcal:10,  p:0.5, cat:"Vorrat", price:1.50, unit:"flat"},
+  naturjoghurt:      {kcal:65,  p:4,   cat:"Kühlware & Milchprodukte", price:0.24, unit:"g", veg:true},
+  vollkornreis:      {kcal:350, p:7.5, cat:"Vorrat", price:0.36, unit:"g", role:"carb"},
 };
 
 // Tagesvorlagen: jede Zutat mit Basismenge (g bzw. Stück). role "protein"/"carb" wird skaliert, alles andere bleibt fix.
@@ -840,10 +844,10 @@ const TEMPLATE_DAYS = [
     {label:"Abendessen", items:[["lachs",130],["reis_braun",40],["brokkoli",150],["edamame",60],["sesamoel",5],["sojasauce",10]]},
     {label:"Snack", items:[["mandeln",30]]}
   ]},
-{day:"Freitag", theme:"Frei wählbar", ramen:{kcal:700,p:30,price:13.5},
+{day:"Freitag", theme:"Indisch-inspiriert",
   meals:[
     {label:"Frühstück", items:[["haferkleie",40],["ei",1],["spinat",30],["parmesan",20]]},
-    {label:"Mittagessen", items:[]},
+    {label:"Mittagessen", items:[["kichererbsen",150],["tomaten",80],["zwiebel_rot",30],["paprika",50],["currygewuerz",1],["naturjoghurt",150],["vollkornreis",60]]},
     {label:"Abendessen", items:[["huehnchen",150],["linsen_gekocht",120],["spinat",100]]},
     {label:"Snack", items:[["frischkaese",160],["gurke",80],["kraeuter",1]]}
   ]},
@@ -893,11 +897,6 @@ function applyRestrictions(items, restrictions){
 }
 
 function scaleDay(template, kcalTarget, proteinTarget, restrictions){
-  const ramenKcal = template.ramen ? template.ramen.kcal : 0;
-  const ramenProtein = template.ramen ? template.ramen.p : 0;
-  const effKcalTarget = kcalTarget - ramenKcal;
-  const effProteinTarget = proteinTarget - ramenProtein;
-
   // Alle Zutaten (mit Substitutionen) einsammeln
   const mealsWithItems = template.meals.map(m => ({ label: m.label, items: applyRestrictions(m.items, restrictions) }));
   const allItems = mealsWithItems.flatMap(m => m.items);
@@ -911,11 +910,10 @@ function scaleDay(template, kcalTarget, proteinTarget, restrictions){
     else { kcalFixed += k; pFixed += p; }
   });
 
-  let pScale = pProtein > 0 ? (effProteinTarget - pFixed - pCarb) / pProtein : 1;
+  let pScale = pProtein > 0 ? (proteinTarget - pFixed - pCarb) / pProtein : 1;
   pScale = Math.max(0.5, Math.min(1.8, pScale || 1));
 
-  const kcalAfterProtein = kcalFixed + kcalCarb + kcalProtein*pScale;
-  let cScale = kcalCarb > 0 ? (effKcalTarget - kcalFixed - kcalProtein*pScale) / kcalCarb : 1;
+  let cScale = kcalCarb > 0 ? (kcalTarget - kcalFixed - kcalProtein*pScale) / kcalCarb : 1;
   cScale = Math.max(0.3, Math.min(2.2, cScale || 1));
 
   const roundGrams = (key, g) => {
@@ -938,20 +936,15 @@ function scaleDay(template, kcalTarget, proteinTarget, restrictions){
     return { label: m.label, desc: descParts.join(", "), kcal: Math.round(kcal), p: Math.round(p), price: Math.round(price*100)/100, _items: scaledItems };
   });
 
-  if (template.ramen) {
-    scaledMeals[1] = { label:"Mittagessen", desc:"Restaurant / frei wählbar (nicht in Zutatenliste enthalten)", kcal: template.ramen.kcal, p: template.ramen.p, price: template.ramen.price, approx: true, _items: [] };
-  }
-
   const totalKcal = scaledMeals.reduce((s,m) => s + m.kcal, 0);
   const totalP = scaledMeals.reduce((s,m) => s + m.p, 0);
   const totalPrice = Math.round(scaledMeals.reduce((s,m) => s + m.price, 0)*100)/100;
 
   return {
     day: template.day, theme: template.theme,
-    total: { kcal: totalKcal, p: totalP, price: totalPrice, approx: !!template.ramen },
+    total: { kcal: totalKcal, p: totalP, price: totalPrice },
     sport: { label: "Optionaler Sporttag-Snack (kcal-/proteinreich, nach Bedarf ergänzen)", kcal: 300, p: 20 },
-    rows: scaledMeals,
-    note: template.ramen ? "Mittagessen ist frei wählbar (z.B. Restaurantbesuch) und daher eine Schätzung." : undefined
+    rows: scaledMeals
   };
 }
 
@@ -970,7 +963,8 @@ function describeIngredient(key, grams){
     sardinen:"Sardinen", meerrettich:"Meerrettich", dill:"Dill", vollkornbrot:"Vollkornbrot", lachs:"Lachs",
     sesamoel:"Sesamöl", mandeln:"Mandeln", weisse_bohnen:"weiße Bohnen", kreuzkuemmel:"Kreuzkümmel", speck:"Speck/Chorizo",
     rosmarin:"Rosmarin", apfel:"Apfel", vollkorntoast:"Vollkorntoast", kraeuter:"Kräuter", tomatensauce:"Tomatensauce",
-    hackfleisch:"Hackfleisch", ananas:"Ananas"
+    hackfleisch:"Hackfleisch", ananas:"Ananas", kichererbsen:"Kichererbsen (gekocht)", currygewuerz:"Currygewürze",
+    naturjoghurt:"Naturjoghurt", vollkornreis:"Vollkornreis (trocken)"
   };
   const n = NUTRI[key];
   const label = names[key] || key;
