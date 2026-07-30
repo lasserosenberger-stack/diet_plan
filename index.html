@@ -1807,6 +1807,7 @@ function renderWeekSelect(){
   sel.innerHTML = '';
   sortedWeekIds().forEach(id => {
     const meta = weeksMeta[id];
+    if (!meta || !meta.start || !meta.end) return;
     const opt = document.createElement('option');
     opt.value = id;
     opt.textContent = `${fmtDateDE(new Date(meta.start))} – ${fmtDateDE(new Date(meta.end))}`;
@@ -1825,13 +1826,37 @@ function updateDateRangeDisplay(){
 
 let currentPlanIsGenerated = false;
 
+function showAppError(msg){
+  hideAppError();
+  const el = document.createElement('div');
+  el.id = 'app-error-banner';
+  el.style.cssText = 'max-width:640px;margin:0 auto 12px;background:#5A3A2A;border:1px solid #7A5238;color:#F0DFC9;border-radius:8px;padding:10px 14px;font-size:12.5px;text-align:center;';
+  el.textContent = msg;
+  document.querySelector('.wrap').insertBefore(el, document.getElementById('tabs'));
+}
+function hideAppError(){
+  const el = document.getElementById('app-error-banner');
+  if (el) el.remove();
+}
+
+function isValidPlan(plan){
+  return !!(plan && Array.isArray(plan.meals) && plan.meals.length === 7 && Array.isArray(plan.data) && plan.data.length > 0);
+}
+
 async function applyWeekPlan(weekId){
-  const plan = await loadPlanForWeek(weekId);
-  if (plan && plan.meals && plan.data) {
+  let plan = null;
+  try {
+    plan = await loadPlanForWeek(weekId);
+  } catch(e) {
+    showAppError('Plan konnte nicht geladen werden (' + e.message + ') – zeige Standardvorlage.');
+  }
+  if (isValidPlan(plan)) {
     MEALS = plan.meals;
     DATA = plan.data;
     currentPlanIsGenerated = true;
+    hideAppError();
   } else {
+    if (plan) showAppError('Der gespeicherte Plan dieser Woche war ungültig/leer – zeige Standardvorlage. Über das Zahnrad kannst du eine neue Version erstellen.');
     MEALS = DEFAULT_MEALS;
     DATA = DEFAULT_DATA;
     currentPlanIsGenerated = false;
@@ -1851,15 +1876,16 @@ async function initWeeks(){
   try {
     weeksMeta = await fetchWeeksMeta();
   } catch(e) {
+    showAppError('Wochenliste konnte nicht geladen werden (' + e.message + ').');
     weeksMeta = {};
   }
 
-  if (Object.keys(weeksMeta).length === 0) {
+  if (!weeksMeta || Object.keys(weeksMeta).length === 0) {
     const monday = mondayOf(new Date());
     const sunday = addDays(monday, 6);
     const weekId = isoDate(monday);
-    weeksMeta[weekId] = { start: isoDate(monday), end: isoDate(sunday) };
-    try { await saveWeekMeta(weekId, weeksMeta[weekId]); } catch(e) {}
+    weeksMeta = { [weekId]: { start: isoDate(monday), end: isoDate(sunday) } };
+    try { await saveWeekMeta(weekId, weeksMeta[weekId]); } catch(e) { showAppError('Neue Woche konnte nicht gespeichert werden (' + e.message + ').'); }
   }
 
   const ids = sortedWeekIds();
