@@ -610,6 +610,27 @@
 
 
 <script>
+// ==== GLOBALER FEHLER-HANDLER (ganz am Anfang, fängt alles ab) ====
+window.addEventListener('error', function(e){
+  showFatalError('JS-Fehler: ' + e.message + ' (Zeile ' + e.lineno + ')');
+});
+window.addEventListener('unhandledrejection', function(e){
+  showFatalError('Unbehandelter Fehler: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+});
+function showFatalError(msg){
+  let el = document.getElementById('fatal-error-banner');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'fatal-error-banner';
+    el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:999;background:#8B2E1F;color:#fff;padding:10px 16px;font-size:13px;font-family:monospace;white-space:pre-wrap;';
+    document.body.insertBefore(el, document.body.firstChild);
+  }
+  const line = document.createElement('div');
+  line.textContent = msg;
+  el.appendChild(line);
+}
+// ==== ENDE GLOBALER FEHLER-HANDLER ====
+
 const DEFAULT_MEALS = [
   {day:"Montag", theme:"Griechisch inspiriert", total:{kcal:1471,p:128, price:10.05},
     sport:{label:"30 g Mandeln + 1 Banane (120 g)", kcal:260, p:8},
