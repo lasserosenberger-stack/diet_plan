@@ -808,6 +808,7 @@ const DEFAULT_DATA = [
 
 let MEALS = DEFAULT_MEALS;
 let DATA = DEFAULT_DATA;
+let currentPlanIsGenerated = false;
 
 // ==== REZEPT-GENERATOR (Nährwerte, Vorlagen, Skalierung) ====
 
@@ -1844,8 +1845,6 @@ function updateDateRangeDisplay(){
       `${fmtDateDE(new Date(meta.start))} – ${fmtDateDE(new Date(meta.end))}`;
   }
 }
-
-let currentPlanIsGenerated = false;
 
 function showAppError(msg){
   hideAppError();
