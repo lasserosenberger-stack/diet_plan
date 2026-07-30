@@ -1956,19 +1956,22 @@ document.getElementById('nw-generate').onclick = async () => {
   msg.style.color = 'var(--ink-muted)';
   msg.textContent = 'Plan wird erstellt…';
 
-  const ids = sortedWeekIds();
-  const lastId = ids[ids.length - 1];
-  const lastStart = new Date(weeksMeta[lastId].start);
-  const newStart = addDays(lastStart, 7);
-  const newEnd = addDays(newStart, 6);
-  const weekId = isoDate(newStart);
-
   try {
+    const ids = sortedWeekIds().filter(id => weeksMeta[id] && weeksMeta[id].start);
+    const lastId = ids.length ? ids[ids.length - 1] : null;
+    const lastStart = lastId ? new Date(weeksMeta[lastId].start) : mondayOf(new Date());
+    const baseStart = isNaN(lastStart.getTime()) ? mondayOf(new Date()) : lastStart;
+    const newStart = lastId ? addDays(baseStart, 7) : baseStart;
+    const newEnd = addDays(newStart, 6);
+    const weekId = isoDate(newStart);
+
     let recentDishIds = null;
-    try {
-      const prevPlan = await loadPlanForWeek(lastId);
-      if (prevPlan) recentDishIds = collectRecentDishIds(prevPlan);
-    } catch(e) { /* keine Vorwoche vorhanden oder Ladefehler - ignorieren, dann ohne Sperre generieren */ }
+    if (lastId) {
+      try {
+        const prevPlan = await loadPlanForWeek(lastId);
+        if (prevPlan) recentDishIds = collectRecentDishIds(prevPlan);
+      } catch(e) { /* keine Vorwoche vorhanden oder Ladefehler - ignorieren, dann ohne Sperre generieren */ }
+    }
 
     const plan = generatePlan(kcal, protein, restrictions, recentDishIds);
     weeksMeta[weekId] = { start: isoDate(newStart), end: isoDate(newEnd), kcalGoal: kcal, proteinGoal: protein, restrictions };
