@@ -372,6 +372,42 @@
     font-size:11px;
     cursor:pointer;
   }
+  .week-picker{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .week-nav-btn{
+    background:#2C3B31;
+    border:1px solid #445245;
+    color:#EFE9D8;
+    width:28px;height:28px;
+    border-radius:6px;
+    font-size:16px;
+    cursor:pointer;
+    line-height:1;
+  }
+  #week-select{
+    background:#2C3B31;
+    border:1px solid #445245;
+    color:#EFE9D8;
+    padding:6px 10px;
+    border-radius:6px;
+    font-size:13px;
+    max-width:220px;
+  }
+  .week-picker .sync-btn{
+    background:var(--mustard);
+    color:#2A1F0A;
+    border:none;
+    border-radius:6px;
+    padding:6px 12px;
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+  }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
@@ -411,9 +447,16 @@
     </div>
     <h1>Ernährungsplan</h1>
     <p>Mahlzeiten &amp; Einkauf in einem Dokument</p>
-    <p class="date-range">27.07.2026 – 02.08.2026</p>
+    <p class="date-range" id="date-range">27.07.2026 – 02.08.2026</p>
     <div id="save-status" class="save-status"></div>
   </header>
+
+  <div class="week-picker">
+    <button class="week-nav-btn" id="week-prev-btn" title="Vorherige Woche">&lsaquo;</button>
+    <select id="week-select"></select>
+    <button class="week-nav-btn" id="week-next-btn" title="Nächste Woche">&rsaquo;</button>
+    <button class="sync-btn" id="week-add-btn">+ Neue Woche</button>
+  </div>
 
   <div class="tabs" id="tabs"></div>
   <div id="panels"></div>
@@ -708,26 +751,69 @@ async function ensureFreshToken(){
   }
 }
 
-function userPath(){
-  return `users/${authState.uid}/diaet-checklist`;
+let currentWeekId = null;
+
+function weekChecklistPath(weekId){
+  return `users/${authState.uid}/weeks/${weekId}/checked`;
+}
+function weeksMetaPath(){
+  return `users/${authState.uid}/weeksMeta`;
+}
+
+async function firebaseRequest(path, options){
+  await ensureFreshToken();
+  const url = `${FIREBASE_DB_URL}/${path}.json?auth=${authState.idToken}`;
+  const res = await fetch(url, options);
+  if (!res.ok) throw new Error('Firebase-Anfrage fehlgeschlagen: ' + res.status);
+  return await res.json();
 }
 
 async function firebaseSet(data){
-  await ensureFreshToken();
-  const res = await fetch(`${FIREBASE_DB_URL}/${userPath()}.json?auth=${authState.idToken}`, {
+  if (!currentWeekId) throw new Error('Keine Woche ausgewählt');
+  return firebaseRequest(weekChecklistPath(currentWeekId), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   });
-  if (!res.ok) throw new Error('Firebase PUT fehlgeschlagen: ' + res.status);
-  return await res.json();
 }
 
 async function firebaseGet(){
-  await ensureFreshToken();
-  const res = await fetch(`${FIREBASE_DB_URL}/${userPath()}.json?auth=${authState.idToken}`);
-  if (!res.ok) throw new Error('Firebase GET fehlgeschlagen: ' + res.status);
-  return await res.json(); // null, falls noch nichts gespeichert
+  if (!currentWeekId) throw new Error('Keine Woche ausgewählt');
+  const data = await firebaseRequest(weekChecklistPath(currentWeekId));
+  return data; // null, falls noch nichts gespeichert
+}
+
+async function fetchWeeksMeta(){
+  const data = await firebaseRequest(weeksMetaPath());
+  return data || {}; // { weekId: {start:"YYYY-MM-DD", end:"YYYY-MM-DD"}, ... }
+}
+
+async function saveWeekMeta(weekId, meta){
+  return firebaseRequest(`${weeksMetaPath()}/${weekId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(meta)
+  });
+}
+
+function fmtDateDE(d){
+  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+function isoDate(d){
+  return d.toISOString().slice(0,10);
+}
+function addDays(d, n){
+  const nd = new Date(d);
+  nd.setDate(nd.getDate() + n);
+  return nd;
+}
+function mondayOf(d){
+  const nd = new Date(d);
+  const day = nd.getDay(); // 0=So,1=Mo,...
+  const diff = day === 0 ? -6 : 1 - day;
+  nd.setDate(nd.getDate() + diff);
+  nd.setHours(0,0,0,0);
+  return nd;
 }
 // ==== ENDE FIREBASE KONFIGURATION ====
 
@@ -937,19 +1023,19 @@ document.addEventListener('visibilitychange', () => {
 
 async function loadState(){
   let loaded = false;
+  let data = null;
   for (let i = 0; i < 3 && !loaded; i++) {
     try {
-      const data = await firebaseGet();
-      if (data) checked = data;
+      data = await firebaseGet();
       loaded = true;
     } catch(e) {
       console.warn('Firebase loadState Fehler:', e.message);
       if (i < 2) await new Promise(r => setTimeout(r, 600));
     }
   }
-  if (!loaded) checked = {};
+  checked = (loaded && data) ? data : {};
   document.querySelectorAll('.item').forEach(row => {
-    if (checked[row.dataset.key]) row.classList.add('checked');
+    row.classList.toggle('checked', !!checked[row.dataset.key]);
   });
   updateTotals();
 }
@@ -1079,7 +1165,7 @@ function showApp(email){
   document.getElementById('app-content').style.display = 'block';
   document.getElementById('user-email-display').textContent = email || '';
   buildUI();
-  loadState();
+  initWeeks();
 }
 
 function showLogin(msg){
@@ -1144,6 +1230,91 @@ document.getElementById('logout-btn').onclick = () => {
     showLogin();
   }
 })();
+
+// ==== WOCHENVERWALTUNG ====
+let weeksMeta = {}; // { weekId: {start, end} }
+
+function sortedWeekIds(){
+  return Object.keys(weeksMeta).sort(); // ISO-Datum als Key -> alphabetisch = chronologisch
+}
+
+function renderWeekSelect(){
+  const sel = document.getElementById('week-select');
+  sel.innerHTML = '';
+  sortedWeekIds().forEach(id => {
+    const meta = weeksMeta[id];
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = `${fmtDateDE(new Date(meta.start))} – ${fmtDateDE(new Date(meta.end))}`;
+    sel.appendChild(opt);
+  });
+  sel.value = currentWeekId;
+}
+
+function updateDateRangeDisplay(){
+  const meta = weeksMeta[currentWeekId];
+  if (meta) {
+    document.getElementById('date-range').textContent =
+      `${fmtDateDE(new Date(meta.start))} – ${fmtDateDE(new Date(meta.end))}`;
+  }
+}
+
+async function switchToWeek(weekId){
+  currentWeekId = weekId;
+  renderWeekSelect();
+  updateDateRangeDisplay();
+  document.querySelectorAll('.item').forEach(row => row.classList.remove('checked'));
+  await loadState();
+}
+
+async function initWeeks(){
+  try {
+    weeksMeta = await fetchWeeksMeta();
+  } catch(e) {
+    weeksMeta = {};
+  }
+
+  if (Object.keys(weeksMeta).length === 0) {
+    const monday = mondayOf(new Date());
+    const sunday = addDays(monday, 6);
+    const weekId = isoDate(monday);
+    weeksMeta[weekId] = { start: isoDate(monday), end: isoDate(sunday) };
+    try { await saveWeekMeta(weekId, weeksMeta[weekId]); } catch(e) {}
+  }
+
+  const ids = sortedWeekIds();
+  currentWeekId = ids[ids.length - 1]; // neueste Woche
+  renderWeekSelect();
+  updateDateRangeDisplay();
+  await loadState();
+}
+
+document.getElementById('week-select').onchange = (e) => switchToWeek(e.target.value);
+
+document.getElementById('week-prev-btn').onclick = () => {
+  const ids = sortedWeekIds();
+  const idx = ids.indexOf(currentWeekId);
+  if (idx > 0) switchToWeek(ids[idx - 1]);
+};
+
+document.getElementById('week-next-btn').onclick = () => {
+  const ids = sortedWeekIds();
+  const idx = ids.indexOf(currentWeekId);
+  if (idx < ids.length - 1) switchToWeek(ids[idx + 1]);
+};
+
+document.getElementById('week-add-btn').onclick = async () => {
+  const ids = sortedWeekIds();
+  const lastId = ids[ids.length - 1];
+  const lastStart = new Date(weeksMeta[lastId].start);
+  const newStart = addDays(lastStart, 7);
+  const newEnd = addDays(newStart, 6);
+  const weekId = isoDate(newStart);
+  if (weeksMeta[weekId]) { switchToWeek(weekId); return; }
+  weeksMeta[weekId] = { start: isoDate(newStart), end: isoDate(newEnd) };
+  try { await saveWeekMeta(weekId, weeksMeta[weekId]); } catch(e) {}
+  await switchToWeek(weekId);
+};
 </script>
 
 </body>
