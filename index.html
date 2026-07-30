@@ -812,140 +812,44 @@ const NUTRI = {
   currygewuerz:      {kcal:10,  p:0.5, cat:"Vorrat", price:1.50, unit:"flat"},
   naturjoghurt:      {kcal:65,  p:4,   cat:"Kühlware & Milchprodukte", price:0.24, unit:"g", veg:true},
   vollkornreis:      {kcal:350, p:7.5, cat:"Vorrat", price:0.36, unit:"g", role:"carb"},
+  nudeln:            {kcal:350, p:12,  cat:"Vorrat", price:0.30, unit:"g", role:"carb"},
+  vollkornnudeln:    {kcal:340, p:13,  cat:"Vorrat", price:0.35, unit:"g", role:"carb"},
+  pute:              {kcal:110, p:22,  cat:"Fleisch & Fisch", price:0.014, unit:"g", role:"protein", veg:false, sub:"tofu_natur"},
+  pilze:             {kcal:22,  p:3,   cat:"Obst & Gemüse", price:0.006, unit:"g"},
+  kokosmilch:        {kcal:180, p:2,   cat:"Vorrat", price:0.006, unit:"g"},
+  currypaste:        {kcal:60,  p:1,   cat:"Vorrat", price:1.00, unit:"flat"},
+  thunfisch:         {kcal:116, p:26,  cat:"Vorrat", price:1.50, unit:"g", role:"protein", fish:true, sub:"kidneybohnen"},
+  kartoffeln:        {kcal:77,  p:2,   cat:"Obst & Gemüse", price:0.002, unit:"g", role:"carb"},
+  kuerbis:           {kcal:26,  p:1,   cat:"Obst & Gemüse", price:0.003, unit:"g"},
+  polenta:           {kcal:350, p:8,   cat:"Vorrat", price:0.30, unit:"g", role:"carb"},
+  linsen_rot:        {kcal:340, p:24,  cat:"Vorrat", price:0.40, unit:"g", role:"protein", veg:true},
+  pak_choi:          {kcal:13,  p:1.5, cat:"Obst & Gemüse", price:0.006, unit:"g"},
+  mozzarella:        {kcal:280, p:18,  cat:"Kühlware & Milchprodukte", price:1.00, unit:"g", veg:true},
+  pesto:             {kcal:450, p:4,   cat:"Vorrat", price:1.20, unit:"flat"},
+  tofu_natur:        {kcal:145, p:15,  cat:"Kühlware & Milchprodukte", price:0.009, unit:"g", role:"protein", veg:true},
+  kabeljau:          {kcal:82,  p:18,  cat:"Fleisch & Fisch", price:0.018, unit:"g", role:"protein", fish:true, sub:"tofu_natur"},
+  oliven:            {kcal:115, p:1,   cat:"Vorrat", price:0.006, unit:"g"},
+  basilikum:         {kcal:23,  p:3.2, cat:"Obst & Gemüse", price:1.00, unit:"flat"},
+  erdnussbutter:     {kcal:590, p:25,  cat:"Vorrat", price:0.008, unit:"g", nuts:true, sub:"frischkaese"},
 };
-
-// Tagesvorlagen: jede Zutat mit Basismenge (g bzw. Stück). role "protein"/"carb" wird skaliert, alles andere bleibt fix.
-const TEMPLATE_DAYS = [
-{day:"Montag", theme:"Griechisch inspiriert",
-  meals:[
-    {label:"Frühstück", items:[["haferkleie",40],["skyr",150],["beeren",80],["chiasamen",10]]},
-    {label:"Mittagessen", items:[["bulgur",60],["linsen_gekocht",150],["gurke",100],["tomaten",100],["feta",50],["zwiebel_rot",30],["zitrone",0.5],["olivenoel",5]]},
-    {label:"Abendessen", items:[["huehnchen",150],["zucchini",100],["paprika",100],["tzatziki",50]]},
-    {label:"Snack", items:[["frischkaese",200],["radieschen",50]]}
-  ]},
-{day:"Dienstag", theme:"Asiatisch angehaucht",
-  meals:[
-    {label:"Frühstück", items:[["haferkleie",40],["ei",1],["spinat",30],["parmesan",20]]},
-    {label:"Mittagessen", items:[["reis_weiss",70],["raeuchertofu",90],["edamame",70],["sesam",8],["fruehlzwiebel",20],["sojasauce",10],["ingwer",5]]},
-    {label:"Abendessen", items:[["garnelen",150],["brokkoli",150],["karotten",100],["reis_braun",60],["oel",8],["knoblauch",5]]},
-    {label:"Snack", items:[["skyr",200],["leinsamen",10]]}
-  ]},
-{day:"Mittwoch", theme:"Mexikanisch",
-  meals:[
-    {label:"Frühstück", items:[["frischkaese",160],["beeren",80],["leinsamen",10],["haferkleie",40]]},
-    {label:"Mittagessen", items:[["schwarze_bohnen",150],["mais",80],["avocado",40],["koriander",1],["limette",0.5],["huehnchen",100]]},
-    {label:"Abendessen", items:[["tortilla",1],["kidneybohnen",100],["kaese_gouda",30],["salat",50],["salsa",40]]},
-    {label:"Snack", items:[["huettenkaese",160],["suesskartoffel",70],["paprika",80],["zaatar",1]]}
-  ]},
-{day:"Donnerstag", theme:"Mit Fisch",
-  meals:[
-    {label:"Frühstück", items:[["haferkleie",40],["skyr",150],["ananas",80],["chiasamen",10]]},
-    {label:"Mittagessen", items:[["frischkaese",100],["sardinen",100],["meerrettich",10],["dill",1],["zitrone",0.5],["vollkornbrot",60],["radieschen",50]]},
-    {label:"Abendessen", items:[["lachs",130],["reis_braun",40],["brokkoli",150],["edamame",60],["sesamoel",5],["sojasauce",10]]},
-    {label:"Snack", items:[["mandeln",30]]}
-  ]},
-{day:"Freitag", theme:"Indisch-inspiriert",
-  meals:[
-    {label:"Frühstück", items:[["haferkleie",40],["ei",1],["spinat",30],["parmesan",20]]},
-    {label:"Mittagessen", items:[["kichererbsen",150],["tomaten",80],["zwiebel_rot",30],["paprika",50],["currygewuerz",1],["naturjoghurt",150],["vollkornreis",60]]},
-    {label:"Abendessen", items:[["huehnchen",150],["linsen_gekocht",120],["spinat",100]]},
-    {label:"Snack", items:[["frischkaese",160],["gurke",80],["kraeuter",1]]}
-  ]},
-{day:"Samstag", theme:"Suppe & Eintopf",
-  meals:[
-    {label:"Frühstück", items:[["haferkleie",40],["skyr",150],["apfel",80]]},
-    {label:"Mittagessen", items:[["linsen_gekocht",150],["karotten",100],["paprika",80],["kreuzkuemmel",1],["ei",3]]},
-    {label:"Abendessen", items:[["weisse_bohnen",190],["tomaten",100],["rosmarin",1],["speck",45],["vollkornbrot",60]]},
-    {label:"Snack", items:[["skyr",190],["beeren",80]]}
-  ]},
-{day:"Sonntag", theme:"Entspannt & vielseitig",
-  meals:[
-    {label:"Frühstück", items:[["ei",2],["spinat",30],["tomaten",80],["feta",30],["vollkorntoast",60],["haferkleie",40]]},
-    {label:"Mittagessen", items:[["kidneybohnen",100],["sardinen",80],["frischkaese",70],["zitrone",0.5],["zwiebel_rot",30],["kraeuter",1]]},
-    {label:"Abendessen", items:[["paprika",250],["bulgur",45],["hackfleisch",90],["tomatensauce",100]]},
-    {label:"Snack", items:[["huettenkaese",150],["ananas",80]]}
-  ]},
-];
 
 function ingKcal(key, grams){
   const n = NUTRI[key];
-  return n.unit === "flat" ? n.price*0 + (n.kcal) : (n.unit === "stueck" ? n.kcal*grams : n.kcal*grams/100);
-  // Hinweis: bei "stueck" wird "grams" als Stückzahl interpretiert (auch Bruchteile wie 0.5)
+  if (n.unit === "flat") return n.kcal;
+  if (n.unit === "stueck") return n.kcal*grams;
+  return n.kcal*grams/100;
 }
 function ingProtein(key, grams){
   const n = NUTRI[key];
-  return n.unit === "flat" ? n.p : (n.unit === "stueck" ? n.p*grams : n.p*grams/100);
+  if (n.unit === "flat") return n.p;
+  if (n.unit === "stueck") return n.p*grams;
+  return n.p*grams/100;
 }
 function ingPrice(key, grams){
   const n = NUTRI[key];
   if (n.unit === "flat") return n.price;
   if (n.unit === "stueck") return n.price*Math.max(grams,1);
   return n.price*grams/100; // n.price ist EUR pro 100g
-}
-
-// Ersetzt Zutaten, die gegen die gewählten Einschränkungen verstoßen, durch die hinterlegte Alternative (gleiche Menge).
-function applyRestrictions(items, restrictions){
-  return items.map(([key, grams]) => {
-    const n = NUTRI[key];
-    let k = key;
-    if (restrictions.vegetarian && n.veg === false && n.sub) k = n.sub;
-    else if (restrictions.noFish && n.fish && n.sub) k = n.sub;
-    else if (restrictions.noPork && n.pork && n.sub) k = n.sub;
-    else if (restrictions.noNuts && n.nuts && n.sub) k = n.sub;
-    return [k, grams];
-  });
-}
-
-function scaleDay(template, kcalTarget, proteinTarget, restrictions){
-  // Alle Zutaten (mit Substitutionen) einsammeln
-  const mealsWithItems = template.meals.map(m => ({ label: m.label, items: applyRestrictions(m.items, restrictions) }));
-  const allItems = mealsWithItems.flatMap(m => m.items);
-
-  let kcalFixed = 0, pFixed = 0, kcalProtein = 0, pProtein = 0, kcalCarb = 0, pCarb = 0;
-  allItems.forEach(([key, grams]) => {
-    const n = NUTRI[key];
-    const k = ingKcal(key, grams), p = ingProtein(key, grams);
-    if (n.role === "protein") { kcalProtein += k; pProtein += p; }
-    else if (n.role === "carb") { kcalCarb += k; pCarb += p; }
-    else { kcalFixed += k; pFixed += p; }
-  });
-
-  let pScale = pProtein > 0 ? (proteinTarget - pFixed - pCarb) / pProtein : 1;
-  pScale = Math.max(0.5, Math.min(1.8, pScale || 1));
-
-  let cScale = kcalCarb > 0 ? (kcalTarget - kcalFixed - kcalProtein*pScale) / kcalCarb : 1;
-  cScale = Math.max(0.3, Math.min(2.2, cScale || 1));
-
-  const roundGrams = (key, g) => {
-    if (NUTRI[key].unit === "stueck") return Math.round(g*2)/2; // halbe Stück erlaubt
-    return Math.round(g/5)*5;
-  };
-
-  const scaledMeals = mealsWithItems.map(m => {
-    const scaledItems = m.items.map(([key, grams]) => {
-      const n = NUTRI[key];
-      let g = grams;
-      if (n.role === "protein") g = roundGrams(key, grams*pScale);
-      else if (n.role === "carb") g = roundGrams(key, grams*cScale);
-      return [key, g];
-    });
-    const kcal = scaledItems.reduce((s,[k,g]) => s + ingKcal(k,g), 0);
-    const p = scaledItems.reduce((s,[k,g]) => s + ingProtein(k,g), 0);
-    const price = scaledItems.reduce((s,[k,g]) => s + ingPrice(k,g), 0);
-    const descParts = scaledItems.map(([k,g]) => describeIngredient(k,g));
-    return { label: m.label, desc: descParts.join(", "), kcal: Math.round(kcal), p: Math.round(p), price: Math.round(price*100)/100, _items: scaledItems };
-  });
-
-  const totalKcal = scaledMeals.reduce((s,m) => s + m.kcal, 0);
-  const totalP = scaledMeals.reduce((s,m) => s + m.p, 0);
-  const totalPrice = Math.round(scaledMeals.reduce((s,m) => s + m.price, 0)*100)/100;
-
-  return {
-    day: template.day, theme: template.theme,
-    total: { kcal: totalKcal, p: totalP, price: totalPrice },
-    sport: { label: "Optionaler Sporttag-Snack (kcal-/proteinreich, nach Bedarf ergänzen)", kcal: 300, p: 20 },
-    rows: scaledMeals
-  };
 }
 
 function describeIngredient(key, grams){
@@ -964,19 +868,196 @@ function describeIngredient(key, grams){
     sesamoel:"Sesamöl", mandeln:"Mandeln", weisse_bohnen:"weiße Bohnen", kreuzkuemmel:"Kreuzkümmel", speck:"Speck/Chorizo",
     rosmarin:"Rosmarin", apfel:"Apfel", vollkorntoast:"Vollkorntoast", kraeuter:"Kräuter", tomatensauce:"Tomatensauce",
     hackfleisch:"Hackfleisch", ananas:"Ananas", kichererbsen:"Kichererbsen (gekocht)", currygewuerz:"Currygewürze",
-    naturjoghurt:"Naturjoghurt", vollkornreis:"Vollkornreis (trocken)"
+    naturjoghurt:"Naturjoghurt", vollkornreis:"Vollkornreis (trocken)", nudeln:"Nudeln (trocken)",
+    vollkornnudeln:"Vollkornnudeln (trocken)", pute:"Putenbrust", pilze:"Champignons", kokosmilch:"Kokosmilch",
+    currypaste:"Currypaste", thunfisch:"Thunfisch (Dose)", kartoffeln:"Kartoffeln", kuerbis:"Kürbis",
+    polenta:"Polenta (trocken)", linsen_rot:"Rote Linsen (trocken)", pak_choi:"Pak Choi", mozzarella:"Mozzarella",
+    pesto:"Pesto", tofu_natur:"Tofu (natur)", kabeljau:"Kabeljau", oliven:"Oliven", basilikum:"Basilikum",
+    erdnussbutter:"Erdnussbutter"
   };
   const n = NUTRI[key];
   const label = names[key] || key;
   if (n.unit === "flat") return label;
-  if (n.unit === "stueck") return `${grams} ${grams===1?'Stück':'Stück'} ${label}`;
+  if (n.unit === "stueck") return `${grams} Stück ${label}`;
   return `${grams} g ${label}`;
 }
 
-function generatePlan(kcalTarget, proteinTarget, restrictions){
-  const meals = TEMPLATE_DAYS.map(t => scaleDay(t, kcalTarget, proteinTarget, restrictions));
+// Gerichte-Pools für Abwechslung. Jedes Gericht hat eine id (für Wiederholungssperre),
+// einen Namen und Basiszutaten. role:"protein"/"carb" Zutaten werden skaliert, Rest bleibt fix.
+const BREAKFAST_POOL = [
+  {id:"b1", name:"Overnight Oats mit Beeren", items:[["haferkleie",40],["skyr",150],["beeren",80],["chiasamen",10]]},
+  {id:"b2", name:"Herzhafter Porridge", items:[["haferkleie",40],["ei",1],["spinat",30],["parmesan",20]]},
+  {id:"b3", name:"Frischkäse-Beeren-Bowl", items:[["frischkaese",160],["beeren",80],["leinsamen",10],["haferkleie",40]]},
+  {id:"b4", name:"Rührei mit Vollkorntoast", items:[["ei",2],["spinat",30],["tomaten",80],["feta",30],["vollkorntoast",60],["haferkleie",40]]},
+  {id:"b5", name:"Skyr-Apfel-Bowl", items:[["haferkleie",40],["skyr",150],["apfel",80]]},
+  {id:"b6", name:"Kokos-Porridge", items:[["haferkleie",40],["kokosmilch",80],["beeren",60],["chiasamen",10]]},
+  {id:"b7", name:"Gemüse-Omelett", items:[["ei",2],["paprika",50],["spinat",30],["feta",20]]},
+  {id:"b8", name:"Skyr-Ananas-Bowl", items:[["haferkleie",40],["skyr",150],["ananas",80],["chiasamen",10]]},
+  {id:"b9", name:"Bircher-Müsli-Style", items:[["haferkleie",40],["naturjoghurt",120],["apfel",60],["chiasamen",10]]},
+  {id:"b10", name:"Frischkäse-Vollkornbrot mit Ei", items:[["ei",1],["vollkornbrot",50],["frischkaese",60],["gurke",50],["tomaten",50]]},
+];
+
+const MAIN_POOL = [
+  {id:"m1", name:"Linsen-Bulgur-Salat", items:[["bulgur",60],["linsen_gekocht",150],["gurke",100],["tomaten",100],["feta",50],["zwiebel_rot",30],["zitrone",0.5],["olivenoel",5]]},
+  {id:"m2", name:"Griechisches Ofenhähnchen", items:[["huehnchen",150],["zucchini",100],["paprika",100],["tzatziki",50]]},
+  {id:"m3", name:"Asiatische Tofu-Reis-Bowl", items:[["reis_weiss",70],["raeuchertofu",90],["edamame",70],["sesam",8],["fruehlzwiebel",20],["sojasauce",10],["ingwer",5]]},
+  {id:"m4", name:"Garnelen-Gemüse-Pfanne", items:[["garnelen",150],["brokkoli",150],["karotten",100],["reis_braun",60],["oel",8],["knoblauch",5]]},
+  {id:"m5", name:"Mexikanische Bohnen-Bowl", items:[["schwarze_bohnen",150],["mais",80],["avocado",40],["koriander",1],["limette",0.5],["huehnchen",100]]},
+  {id:"m6", name:"Bohnen-Käse-Tortilla-Wrap", items:[["tortilla",1],["kidneybohnen",100],["kaese_gouda",30],["salat",50],["salsa",40]]},
+  {id:"m7", name:"Sardinen-Rillette auf Vollkornbrot", items:[["frischkaese",100],["sardinen",100],["meerrettich",10],["dill",1],["zitrone",0.5],["vollkornbrot",60],["radieschen",50]]},
+  {id:"m8", name:"Lachs-Brokkoli-Bowl", items:[["lachs",130],["reis_braun",40],["brokkoli",150],["edamame",60],["sesamoel",5],["sojasauce",10]]},
+  {id:"m9", name:"Chana Masala mit Vollkornreis", items:[["kichererbsen",150],["tomaten",80],["zwiebel_rot",30],["paprika",50],["currygewuerz",1],["naturjoghurt",150],["vollkornreis",60]]},
+  {id:"m10", name:"Hähnchen mit Linsen und Spinat", items:[["huehnchen",150],["linsen_gekocht",120],["spinat",100]]},
+  {id:"m11", name:"Linsen-Gemüse-Eintopf", items:[["linsen_gekocht",150],["karotten",100],["paprika",80],["kreuzkuemmel",1],["ei",2]]},
+  {id:"m12", name:"Weiße-Bohnen-Suppe", items:[["weisse_bohnen",190],["tomaten",100],["rosmarin",1],["speck",45],["vollkornbrot",60]]},
+  {id:"m13", name:"Sardinen-Kidneybohnen-Salat", items:[["kidneybohnen",100],["sardinen",80],["frischkaese",70],["zitrone",0.5],["zwiebel_rot",30],["kraeuter",1]]},
+  {id:"m14", name:"Gefüllte Paprika mit Hackfleisch", items:[["paprika",250],["bulgur",45],["hackfleisch",90],["tomatensauce",100]]},
+  {id:"m15", name:"Chili con Carne", items:[["hackfleisch",100],["kidneybohnen",150],["mais",80],["paprika",80],["tomatensauce",100],["zwiebel_rot",30]]},
+  {id:"m16", name:"Bolognese mit Vollkornnudeln", items:[["hackfleisch",100],["vollkornnudeln",70],["tomatensauce",150],["karotten",50],["zwiebel_rot",30],["parmesan",20]]},
+  {id:"m17", name:"Kürbis-Kokos-Curry", items:[["kuerbis",200],["kokosmilch",100],["currypaste",1],["kichererbsen",100],["reis_weiss",60]]},
+  {id:"m18", name:"Thunfisch-Nudelsalat", items:[["thunfisch",100],["vollkornnudeln",70],["mais",50],["gurke",80],["tomaten",80],["olivenoel",5]]},
+  {id:"m19", name:"Ofenkartoffeln mit Quark", items:[["kartoffeln",250],["frischkaese",150],["gurke",50],["fruehlzwiebel",10]]},
+  {id:"m20", name:"Gebratener Tofu mit Pak Choi", items:[["tofu_natur",150],["pak_choi",150],["reis_weiss",70],["sojasauce",10],["ingwer",5],["knoblauch",5]]},
+  {id:"m21", name:"Kabeljau mit Ofengemüse", items:[["kabeljau",150],["kartoffeln",150],["brokkoli",100],["olivenoel",8]]},
+  {id:"m22", name:"Putengeschnetzeltes mit Pilzen", items:[["pute",150],["pilze",150],["vollkornreis",70],["zwiebel_rot",30]]},
+  {id:"m23", name:"Caprese-Bowl mit Mozzarella", items:[["mozzarella",100],["tomaten",150],["basilikum",1],["vollkornbrot",40],["olivenoel",5]]},
+  {id:"m24", name:"Rote-Linsen-Curry", items:[["linsen_rot",80],["kokosmilch",80],["currypaste",1],["spinat",100],["reis_weiss",60]]},
+];
+
+const SNACK_POOL = [
+  {id:"s1", name:"Frischkäse mit Radieschen", items:[["frischkaese",200],["radieschen",50]]},
+  {id:"s2", name:"Naturjoghurt mit Leinsamen", items:[["naturjoghurt",200],["leinsamen",10]]},
+  {id:"s3", name:"Hüttenkäse mit Ofengemüse", items:[["huettenkaese",160],["suesskartoffel",70],["paprika",80]]},
+  {id:"s4", name:"Mandeln", items:[["mandeln",30]]},
+  {id:"s5", name:"Skyr mit Beeren", items:[["skyr",190],["beeren",80]]},
+  {id:"s6", name:"Frischkäse mit Gurke und Kräutern", items:[["frischkaese",160],["gurke",80],["kraeuter",1]]},
+  {id:"s7", name:"Hüttenkäse mit Ananas", items:[["huettenkaese",150],["ananas",80]]},
+  {id:"s8", name:"Oliven mit Feta", items:[["oliven",50],["feta",40]]},
+  {id:"s9", name:"Geröstete Kichererbsen", items:[["kichererbsen",100],["olivenoel",5],["currygewuerz",1]]},
+  {id:"s10", name:"Apfel mit Erdnussbutter", items:[["apfel",100],["erdnussbutter",15]]},
+];
+
+const WEEKDAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+// Ungefähre Verteilung des Tagesziels auf die vier Mahlzeiten
+const MEAL_KCAL_SHARE = [0.20, 0.32, 0.30, 0.18];
+const MEAL_P_SHARE    = [0.20, 0.27, 0.35, 0.18];
+
+function applyRestrictionsToDish(items, restrictions){
+  return items.map(([key, grams]) => {
+    const n = NUTRI[key];
+    let k = key;
+    if (restrictions.vegetarian && n.veg === false && n.sub) k = n.sub;
+    else if (restrictions.noFish && n.fish && n.sub) k = n.sub;
+    else if (restrictions.noPork && n.pork && n.sub) k = n.sub;
+    else if (restrictions.noNuts && n.nuts && n.sub) k = n.sub;
+    return [k, grams];
+  });
+}
+
+function scaleDish(items, kcalTarget, proteinTarget){
+  let kcalFixed=0, pFixed=0, kcalProtein=0, pProtein=0, kcalCarb=0, pCarb=0;
+  items.forEach(([key, grams]) => {
+    const n = NUTRI[key];
+    const k = ingKcal(key, grams), p = ingProtein(key, grams);
+    if (n.role === "protein") { kcalProtein += k; pProtein += p; }
+    else if (n.role === "carb") { kcalCarb += k; pCarb += p; }
+    else { kcalFixed += k; pFixed += p; }
+  });
+
+  let pScale = pProtein > 0 ? (proteinTarget - pFixed - pCarb) / pProtein : 1;
+  pScale = Math.max(0.5, Math.min(1.8, pScale || 1));
+
+  let cScale = kcalCarb > 0 ? (kcalTarget - kcalFixed - kcalProtein*pScale) / kcalCarb : 1;
+  cScale = Math.max(0.3, Math.min(2.2, cScale || 1));
+
+  const roundGrams = (key, g) => NUTRI[key].unit === "stueck" ? Math.round(g*2)/2 : Math.round(g/5)*5;
+
+  const scaledItems = items.map(([key, grams]) => {
+    const n = NUTRI[key];
+    let g = grams;
+    if (n.role === "protein") g = roundGrams(key, grams*pScale);
+    else if (n.role === "carb") g = roundGrams(key, grams*cScale);
+    return [key, g];
+  });
+
+  const kcal = scaledItems.reduce((s,[k,g]) => s + ingKcal(k,g), 0);
+  const p = scaledItems.reduce((s,[k,g]) => s + ingProtein(k,g), 0);
+  const price = scaledItems.reduce((s,[k,g]) => s + ingPrice(k,g), 0);
+  const descParts = scaledItems.map(([k,g]) => describeIngredient(k,g));
+  return { desc: descParts.join(", "), kcal: Math.round(kcal), p: Math.round(p), price: Math.round(price*100)/100, _items: scaledItems };
+}
+
+function shuffle(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Sortiert einen Pool so, dass kürzlich verwendete Gerichte (recentIds) ans Ende rutschen,
+// damit sie nur dann erneut gewählt werden, wenn der Pool sonst nicht ausreicht.
+function prioritizeUnused(pool, recentIds){
+  const shuffled = shuffle(pool);
+  const fresh = shuffled.filter(d => !recentIds.has(d.id));
+  const recent = shuffled.filter(d => recentIds.has(d.id));
+  return fresh.concat(recent);
+}
+
+function generatePlan(kcalTarget, proteinTarget, restrictions, recentDishIds){
+  recentDishIds = recentDishIds || { breakfast: new Set(), main: new Set(), snack: new Set() };
+
+  const breakfasts = prioritizeUnused(BREAKFAST_POOL, recentDishIds.breakfast).slice(0, 7);
+  const mains = prioritizeUnused(MAIN_POOL, recentDishIds.main).slice(0, 14);
+  const snacks = prioritizeUnused(SNACK_POOL, recentDishIds.snack).slice(0, 7);
+
+  const meals = WEEKDAYS.map((weekday, i) => {
+    const bfDish = breakfasts[i];
+    const lunchDish = mains[i*2];
+    const dinnerDish = mains[i*2 + 1];
+    const snackDish = snacks[i];
+
+    const dishes = [bfDish, lunchDish, dinnerDish, snackDish];
+    const labels = ["Frühstück", "Mittagessen", "Abendessen", "Snack"];
+
+    const rows = dishes.map((dish, slot) => {
+      const items = applyRestrictionsToDish(dish.items, restrictions);
+      const kcalSlotTarget = Math.round(kcalTarget * MEAL_KCAL_SHARE[slot]);
+      const pSlotTarget = Math.round(proteinTarget * MEAL_P_SHARE[slot]);
+      const scaled = scaleDish(items, kcalSlotTarget, pSlotTarget);
+      return { label: labels[slot], desc: `${dish.name} – ${scaled.desc}`, kcal: scaled.kcal, p: scaled.p, price: scaled.price, _items: scaled._items, _dishId: dish.id };
+    });
+
+    const totalKcal = rows.reduce((s,r) => s + r.kcal, 0);
+    const totalP = rows.reduce((s,r) => s + r.p, 0);
+    const totalPrice = Math.round(rows.reduce((s,r) => s + r.price, 0)*100)/100;
+
+    return {
+      day: weekday,
+      theme: lunchDish.name,
+      total: { kcal: totalKcal, p: totalP, price: totalPrice },
+      sport: { label: "Optionaler Sporttag-Snack (kcal-/proteinreich, nach Bedarf ergänzen)", kcal: 300, p: 20 },
+      rows
+    };
+  });
+
   const data = buildShoppingFromMeals(meals);
   return { meals, data };
+}
+
+function collectRecentDishIds(previousPlan){
+  const ids = { breakfast: new Set(), main: new Set(), snack: new Set() };
+  if (!previousPlan || !previousPlan.meals) return ids;
+  previousPlan.meals.forEach(day => {
+    day.rows.forEach((row, slot) => {
+      if (!row._dishId) return;
+      if (slot === 0) ids.breakfast.add(row._dishId);
+      else if (slot === 1 || slot === 2) ids.main.add(row._dishId);
+      else if (slot === 3) ids.snack.add(row._dishId);
+    });
+  });
+  return ids;
 }
 
 function shoppingLabelParts(key, grams){
@@ -1723,7 +1804,13 @@ document.getElementById('nw-generate').onclick = async () => {
   const weekId = isoDate(newStart);
 
   try {
-    const plan = generatePlan(kcal, protein, restrictions);
+    let recentDishIds = null;
+    try {
+      const prevPlan = await loadPlanForWeek(lastId);
+      if (prevPlan) recentDishIds = collectRecentDishIds(prevPlan);
+    } catch(e) { /* keine Vorwoche vorhanden oder Ladefehler - ignorieren, dann ohne Sperre generieren */ }
+
+    const plan = generatePlan(kcal, protein, restrictions, recentDishIds);
     weeksMeta[weekId] = { start: isoDate(newStart), end: isoDate(newEnd), kcalGoal: kcal, proteinGoal: protein, restrictions };
     await saveWeekMeta(weekId, weeksMeta[weekId]);
     await savePlanForWeek(weekId, plan);
