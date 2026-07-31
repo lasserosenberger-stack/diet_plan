@@ -138,18 +138,6 @@
     display:flex;justify-content:space-between;align-items:center;
   }
   .weektotal b{color:var(--mustard);font-size:16px;}
-  .sync-box{
-    max-width:640px;margin:12px auto 0;
-    background:#2C3B31;
-    border:1px solid #445245;
-    border-radius:10px;
-    padding:12px 16px;
-    color:#EFE9D8;
-  }
-  .sync-title{font-size:13px;font-weight:600;color:var(--mustard);margin-bottom:4px;}
-  .sync-hint{font-size:11.5px;color:#A8A290;margin:0 0 8px;line-height:1.4;}
-  .sync-row{display:flex;gap:8px;margin-bottom:6px;align-items:center;}
-  .sync-row:last-child{margin-bottom:0;}
   .sync-btn{
     flex:none;
     background:var(--mustard);
@@ -161,44 +149,6 @@
     font-weight:600;
     cursor:pointer;
   }
-  #import-input{
-    flex:1;min-width:0;
-    background:#1F2B24;
-    border:1px solid #445245;
-    color:#EFE9D8;
-    border-radius:6px;
-    padding:7px 10px;
-    font-size:12.5px;
-    font-family:"Courier New", monospace;
-  }
-  .sync-msg{font-size:11.5px;color:#8FBF9F;}
-  .qr-container{
-    display:flex;
-    justify-content:center;
-    padding:12px;
-    background:#fff;
-    border-radius:8px;
-    margin-bottom:8px;
-    min-height:196px;
-  }
-  .qr-hint{font-size:11px;color:#A8A290;text-align:center;margin:-4px 0 8px;}
-  .scan-area{
-    display:none;
-    flex-direction:column;
-    align-items:center;
-    gap:8px;
-    background:#000;
-    border-radius:8px;
-    padding:10px;
-    margin-top:8px;
-  }
-  .scan-area.active{display:flex;}
-  .scan-area video{
-    width:100%;
-    max-width:320px;
-    border-radius:6px;
-  }
-  .scan-status{color:#EFE9D8;font-size:12px;text-align:center;}
   .save-status{
     text-align:center;
     font-size:11.5px;
@@ -471,8 +421,6 @@
   .modal-row .sync-btn{flex:1;background:transparent;border:1px solid var(--mustard-dark);color:var(--mustard-dark);padding:9px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;}
   .modal-row .nw-primary{background:var(--mustard);color:#2A1F0A;border:none;}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
 </head>
 <body>
 
@@ -508,7 +456,7 @@
       </svg>
     </div>
     <h1>Ernährungsplan</h1>
-    <p>Mahlzeiten &amp; Einkauf in einem Dokument</p>
+    <p>Mahlzeiten &amp; Einkauf</p>
     <p class="date-range" id="date-range">27.07.2026 – 02.08.2026</p>
     <div id="save-status" class="save-status"></div>
   </header>
@@ -533,25 +481,6 @@
     <span>Noch übrig diese Woche</span>
     <b id="week-rest">0,00 €</b>
   </div>
-
-  <div class="sync-box">
-    <div class="sync-title">Status übertragen (zusätzlich zum automatischen Firebase-Sync)</div>
-    <p class="sync-hint">QR-Code/Code als Fallback, z. B. falls kein Internetzugriff besteht oder Firebase mal nicht erreichbar ist.</p>
-    <div id="qr-container" class="qr-container"></div>
-    <span id="export-msg" class="sync-msg"></span>
-    <div class="sync-row">
-      <input type="text" id="import-input" placeholder="Code hier einfügen">
-      <button class="sync-btn" id="import-btn">Übernehmen</button>
-      <button class="sync-btn" id="scan-btn">QR scannen</button>
-    </div>
-    <div id="scan-area" class="scan-area">
-      <video id="scan-video" playsinline autoplay muted></video>
-      <div id="scan-status" class="scan-status">Kamera wird gestartet…</div>
-      <button class="sync-btn" id="scan-cancel-btn">Abbrechen</button>
-    </div>
-  </div>
-
-  <button class="reset" id="reset-btn">Alle Haken zurücksetzen</button>
 </div>
 
 <div id="newweek-modal" class="modal-overlay">
@@ -816,93 +745,93 @@ let currentPlanIsGenerated = false;
 // bzw. bei unit:'stueck' Preis pro Stück statt pro 100g. tags: veg(vegetarisch ok), fish, pork, nuts.
 const NUTRI = {
   haferkleie:        {kcal:350, p:17,  cat:"Vorrat", price:0.50, unit:"g"},
-  skyr:              {kcal:65,  p:10,  cat:"Kühlware & Milchprodukte", price:0.667, unit:"g"},
-  beeren:            {kcal:45,  p:0.8, cat:"Vorrat", price:0.625, unit:"g"},
+  skyr:              {kcal:65,  p:10,  cat:"Kühlware & Milchprodukte", price:0.67, unit:"g"},
+  beeren:            {kcal:45,  p:0.8, cat:"Vorrat", price:0.63, unit:"g"},
   chiasamen:         {kcal:486, p:17,  cat:"Vorrat", price:2.00, unit:"g"},
   bulgur:            {kcal:342, p:12,  cat:"Vorrat", price:0.36, unit:"g", role:"carb"},
   linsen_gekocht:    {kcal:116, p:9,   cat:"Vorrat", price:0.36, unit:"g", role:"protein", veg:true},
-  gurke:             {kcal:12,  p:0.6, cat:"Obst & Gemüse", price:0.008, unit:"g"},
-  tomaten:           {kcal:18,  p:0.9, cat:"Obst & Gemüse", price:0.0036, unit:"g"},
+  gurke:             {kcal:12,  p:0.6, cat:"Obst & Gemüse", price:0.20, unit:"g"},
+  tomaten:           {kcal:18,  p:0.9, cat:"Obst & Gemüse", price:0.40, unit:"g"},
   feta:              {kcal:264, p:14,  cat:"Kühlware & Milchprodukte", price:1.10, unit:"g", veg:true},
-  zwiebel_rot:       {kcal:40,  p:1.1, cat:"Obst & Gemüse", price:0.006, unit:"g"},
+  zwiebel_rot:       {kcal:40,  p:1.1, cat:"Obst & Gemüse", price:0.60, unit:"g"},
   zitrone:           {kcal:2,   p:0.1, cat:"Obst & Gemüse", price:0.50, unit:"stueck"},
-  olivenoel:         {kcal:884, p:0,   cat:"Vorrat", price:0.008, unit:"g"},
-  huehnchen:         {kcal:165, p:31,  cat:"Fleisch & Fisch", price:0.0167, unit:"g", role:"protein", fish:false, pork:false, veg:false, sub:"raeuchertofu"},
-  zucchini:          {kcal:17,  p:1.2, cat:"Obst & Gemüse", price:0.003, unit:"g"},
-  paprika:           {kcal:31,  p:1,   cat:"Obst & Gemüse", price:0.0047, unit:"g"},
-  tzatziki:          {kcal:90,  p:3.5, cat:"Kühlware & Milchprodukte", price:0.008, unit:"g"},
-  frischkaese:       {kcal:98,  p:12,  cat:"Kühlware & Milchprodukte", price:0.0075, unit:"g", role:"protein", veg:true},
-  radieschen:        {kcal:16,  p:0.7, cat:"Obst & Gemüse", price:0.006, unit:"g"},
+  olivenoel:         {kcal:884, p:0,   cat:"Vorrat", price:0.80, unit:"g"},
+  huehnchen:         {kcal:165, p:31,  cat:"Fleisch & Fisch", price:1.70, unit:"g", role:"protein", fish:false, pork:false, veg:false, sub:"raeuchertofu"},
+  zucchini:          {kcal:17,  p:1.2, cat:"Obst & Gemüse", price:0.30, unit:"g"},
+  paprika:           {kcal:31,  p:1,   cat:"Obst & Gemüse", price:0.47, unit:"g"},
+  tzatziki:          {kcal:90,  p:3.5, cat:"Kühlware & Milchprodukte", price:0.80, unit:"g"},
+  frischkaese:       {kcal:98,  p:12,  cat:"Kühlware & Milchprodukte", price:0.75, unit:"g", role:"protein", veg:true},
+  radieschen:        {kcal:16,  p:0.7, cat:"Obst & Gemüse", price:0.60, unit:"g"},
   ei:                {kcal:155, p:13,  cat:"Kühlware & Milchprodukte", price:0.30, unit:"stueck", role:"protein", veg:true},
-  spinat:            {kcal:23,  p:2.9, cat:"Obst & Gemüse", price:0.01, unit:"g"},
-  parmesan:          {kcal:400, p:35,  cat:"Kühlware & Milchprodukte", price:0.025, unit:"g", veg:true},
-  reis_weiss:        {kcal:350, p:7,   cat:"Vorrat", price:0.0036, unit:"g", role:"carb"},
-  raeuchertofu:      {kcal:150, p:15,  cat:"Kühlware & Milchprodukte", price:0.011, unit:"g", role:"protein", veg:true},
-  edamame:           {kcal:120, p:11,  cat:"Kühlware & Milchprodukte", price:0.00625, unit:"g", role:"protein", veg:true},
-  sesam:             {kcal:570, p:18,  cat:"Vorrat", price:0.012, unit:"g", nuts:false},
-  fruehlzwiebel:     {kcal:30,  p:1.5, cat:"Obst & Gemüse", price:0.01, unit:"g"},
-  sojasauce:         {kcal:60,  p:6,   cat:"Vorrat", price:0.0072, unit:"g"},
-  ingwer:            {kcal:80,  p:2,   cat:"Obst & Gemüse", price:0.01, unit:"g"},
-  garnelen:          {kcal:90,  p:20,  cat:"Fleisch & Fisch", price:0.0225, unit:"g", role:"protein", fish:true, sub:"raeuchertofu"},
-  brokkoli:          {kcal:34,  p:2.8, cat:"Obst & Gemüse", price:0.0045, unit:"g"},
-  karotten:          {kcal:41,  p:0.9, cat:"Obst & Gemüse", price:0.002, unit:"g"},
-  reis_braun:        {kcal:360, p:7.5, cat:"Vorrat", price:0.0036, unit:"g", role:"carb"},
-  oel:               {kcal:884, p:0,   cat:"Vorrat", price:0.008, unit:"g"},
-  knoblauch:         {kcal:150, p:6.5, cat:"Obst & Gemüse", price:0.012, unit:"g"},
-  leinsamen:         {kcal:534, p:18,  cat:"Vorrat", price:0.006, unit:"g"},
-  schwarze_bohnen:   {kcal:132, p:8.9, cat:"Vorrat", price:0.0042, unit:"g", role:"protein", veg:true},
-  mais:              {kcal:96,  p:3.2, cat:"Vorrat", price:0.0064, unit:"g"},
-  avocado:           {kcal:160, p:2,   cat:"Obst & Gemüse", price:0.008, unit:"g"},
+  spinat:            {kcal:23,  p:2.9, cat:"Obst & Gemüse", price:1.00, unit:"g"},
+  parmesan:          {kcal:400, p:35,  cat:"Kühlware & Milchprodukte", price:2.50, unit:"g", veg:true},
+  reis_weiss:        {kcal:350, p:7,   cat:"Vorrat", price:0.36, unit:"g", role:"carb"},
+  raeuchertofu:      {kcal:150, p:15,  cat:"Kühlware & Milchprodukte", price:1.10, unit:"g", role:"protein", veg:true},
+  edamame:           {kcal:120, p:11,  cat:"Kühlware & Milchprodukte", price:0.63, unit:"g", role:"protein", veg:true},
+  sesam:             {kcal:570, p:18,  cat:"Vorrat", price:1.20, unit:"g", nuts:false},
+  fruehlzwiebel:     {kcal:30,  p:1.5, cat:"Obst & Gemüse", price:1.00, unit:"g"},
+  sojasauce:         {kcal:60,  p:6,   cat:"Vorrat", price:0.72, unit:"g"},
+  ingwer:            {kcal:80,  p:2,   cat:"Obst & Gemüse", price:1.00, unit:"g"},
+  garnelen:          {kcal:90,  p:20,  cat:"Fleisch & Fisch", price:2.25, unit:"g", role:"protein", fish:true, sub:"raeuchertofu"},
+  brokkoli:          {kcal:34,  p:2.8, cat:"Obst & Gemüse", price:0.45, unit:"g"},
+  karotten:          {kcal:41,  p:0.9, cat:"Obst & Gemüse", price:0.20, unit:"g"},
+  reis_braun:        {kcal:360, p:7.5, cat:"Vorrat", price:0.36, unit:"g", role:"carb"},
+  oel:               {kcal:884, p:0,   cat:"Vorrat", price:0.80, unit:"g"},
+  knoblauch:         {kcal:150, p:6.5, cat:"Obst & Gemüse", price:1.20, unit:"g"},
+  leinsamen:         {kcal:534, p:18,  cat:"Vorrat", price:0.60, unit:"g"},
+  schwarze_bohnen:   {kcal:132, p:8.9, cat:"Vorrat", price:0.42, unit:"g", role:"protein", veg:true},
+  mais:              {kcal:96,  p:3.2, cat:"Vorrat", price:0.64, unit:"g"},
+  avocado:           {kcal:160, p:2,   cat:"Obst & Gemüse", price:0.80, unit:"g"},
   koriander:         {kcal:23,  p:2.1, cat:"Obst & Gemüse", price:1.50, unit:"stueck"},
   limette:           {kcal:2,   p:0.1, cat:"Obst & Gemüse", price:0.40, unit:"stueck"},
-  huettenkaese:      {kcal:98,  p:11,  cat:"Kühlware & Milchprodukte", price:0.009, unit:"g", role:"protein", veg:true},
+  huettenkaese:      {kcal:98,  p:11,  cat:"Kühlware & Milchprodukte", price:0.90, unit:"g", role:"protein", veg:true},
   tortilla:          {kcal:275, p:8,   cat:"Vorrat", price:0.30, unit:"stueck", role:"carb"},
-  kidneybohnen:      {kcal:127, p:8.7, cat:"Vorrat", price:0.0042, unit:"g", role:"protein", veg:true},
-  kaese_gouda:       {kcal:356, p:25,  cat:"Kühlware & Milchprodukte", price:0.0133, unit:"g", veg:true},
-  salat:             {kcal:15,  p:1.4, cat:"Obst & Gemüse", price:0.0065, unit:"g"},
-  salsa:             {kcal:35,  p:1,   cat:"Vorrat", price:0.05, unit:"g"},
-  suesskartoffel:    {kcal:86,  p:1.6, cat:"Obst & Gemüse", price:0.01, unit:"g", role:"carb"},
+  kidneybohnen:      {kcal:127, p:8.7, cat:"Vorrat", price:0.42, unit:"g", role:"protein", veg:true},
+  kaese_gouda:       {kcal:356, p:25,  cat:"Kühlware & Milchprodukte", price:1.33, unit:"g", veg:true},
+  salat:             {kcal:15,  p:1.4, cat:"Obst & Gemüse", price:0.65, unit:"g"},
+  salsa:             {kcal:35,  p:1,   cat:"Vorrat", price:1.00, unit:"g"},
+  suesskartoffel:    {kcal:86,  p:1.6, cat:"Obst & Gemüse", price:1.00, unit:"g", role:"carb"},
   zaatar:            {kcal:280, p:8,   cat:"Vorrat", price:2.50, unit:"flat"},
-  sardinen:          {kcal:208, p:25,  cat:"Vorrat", price:0.015, unit:"g", role:"protein", fish:true, sub:"kidneybohnen"},
-  meerrettich:       {kcal:62,  p:2.9, cat:"Vorrat", price:0.018, unit:"g"},
+  sardinen:          {kcal:208, p:25,  cat:"Vorrat", price:1.50, unit:"g", role:"protein", fish:true, sub:"kidneybohnen"},
+  meerrettich:       {kcal:62,  p:2.9, cat:"Vorrat", price:1.80, unit:"g"},
   dill:              {kcal:43,  p:3.5, cat:"Obst & Gemüse", price:1.00, unit:"flat"},
-  vollkornbrot:      {kcal:250, p:9,   cat:"Kühlware & Milchprodukte", price:0.005, unit:"g", role:"carb"},
-  lachs:             {kcal:208, p:20,  cat:"Fleisch & Fisch", price:0.0385, unit:"g", role:"protein", fish:true, sub:"raeuchertofu"},
-  sesamoel:          {kcal:884, p:0,   cat:"Vorrat", price:0.01, unit:"g"},
-  mandeln:           {kcal:579, p:21,  cat:"Vorrat", price:0.0125, unit:"g", nuts:true, sub:"skyr"},
-  weisse_bohnen:     {kcal:120, p:8.5, cat:"Vorrat", price:0.0042, unit:"g", role:"protein", veg:true},
+  vollkornbrot:      {kcal:250, p:9,   cat:"Kühlware & Milchprodukte", price:0.50, unit:"g", role:"carb"},
+  lachs:             {kcal:208, p:20,  cat:"Fleisch & Fisch", price:3.85, unit:"g", role:"protein", fish:true, sub:"raeuchertofu"},
+  sesamoel:          {kcal:884, p:0,   cat:"Vorrat", price:1.00, unit:"g"},
+  mandeln:           {kcal:579, p:21,  cat:"Vorrat", price:1.25, unit:"g", nuts:true, sub:"skyr"},
+  weisse_bohnen:     {kcal:120, p:8.5, cat:"Vorrat", price:0.42, unit:"g", role:"protein", veg:true},
   kreuzkuemmel:      {kcal:375, p:18,  cat:"Vorrat", price:1.50, unit:"flat"},
-  speck:             {kcal:300, p:20,  cat:"Fleisch & Fisch", price:0.02, unit:"g", role:"protein", pork:true, sub:"weisse_bohnen"},
+  speck:             {kcal:300, p:20,  cat:"Fleisch & Fisch", price:2.00, unit:"g", role:"protein", pork:true, sub:"weisse_bohnen"},
   rosmarin:          {kcal:131, p:3.3, cat:"Obst & Gemüse", price:1.50, unit:"flat"},
-  apfel:             {kcal:52,  p:0.3, cat:"Obst & Gemüse", price:0.0063, unit:"g"},
-  vollkorntoast:     {kcal:250, p:9,   cat:"Kühlware & Milchprodukte", price:0.0036, unit:"g", role:"carb"},
+  apfel:             {kcal:52,  p:0.3, cat:"Obst & Gemüse", price:0.63, unit:"g"},
+  vollkorntoast:     {kcal:250, p:9,   cat:"Kühlware & Milchprodukte", price:0.36, unit:"g", role:"carb"},
   kraeuter:          {kcal:30,  p:3,   cat:"Obst & Gemüse", price:2.00, unit:"flat"},
-  tomatensauce:      {kcal:35,  p:1.5, cat:"Vorrat", price:0.003, unit:"g"},
-  hackfleisch:       {kcal:200, p:19,  cat:"Fleisch & Fisch", price:0.01, unit:"g", role:"protein", pork:true, sub:"kidneybohnen"},
-  ananas:            {kcal:50,  p:0.5, cat:"Vorrat", price:0.00625, unit:"g"},
-  kichererbsen:      {kcal:164, p:8.9, cat:"Vorrat", price:0.375, unit:"g", role:"protein", veg:true},
+  tomatensauce:      {kcal:35,  p:1.5, cat:"Vorrat", price:0.30, unit:"g"},
+  hackfleisch:       {kcal:200, p:19,  cat:"Fleisch & Fisch", price:1.00, unit:"g", role:"protein", pork:true, sub:"kidneybohnen"},
+  ananas:            {kcal:50,  p:0.5, cat:"Vorrat", price:0.63, unit:"g"},
+  kichererbsen:      {kcal:164, p:8.9, cat:"Vorrat", price:0.38, unit:"g", role:"protein", veg:true},
   currygewuerz:      {kcal:10,  p:0.5, cat:"Vorrat", price:1.50, unit:"flat"},
   naturjoghurt:      {kcal:65,  p:4,   cat:"Kühlware & Milchprodukte", price:0.24, unit:"g", veg:true},
   vollkornreis:      {kcal:350, p:7.5, cat:"Vorrat", price:0.36, unit:"g", role:"carb"},
   nudeln:            {kcal:350, p:12,  cat:"Vorrat", price:0.30, unit:"g", role:"carb"},
   vollkornnudeln:    {kcal:340, p:13,  cat:"Vorrat", price:0.35, unit:"g", role:"carb"},
-  pute:              {kcal:110, p:22,  cat:"Fleisch & Fisch", price:0.014, unit:"g", role:"protein", veg:false, sub:"tofu_natur"},
-  pilze:             {kcal:22,  p:3,   cat:"Obst & Gemüse", price:0.006, unit:"g"},
-  kokosmilch:        {kcal:180, p:2,   cat:"Vorrat", price:0.006, unit:"g"},
+  pute:              {kcal:110, p:22,  cat:"Fleisch & Fisch", price:1.40, unit:"g", role:"protein", veg:false, sub:"tofu_natur"},
+  pilze:             {kcal:22,  p:3,   cat:"Obst & Gemüse", price:0.60, unit:"g"},
+  kokosmilch:        {kcal:180, p:2,   cat:"Vorrat", price:0.60, unit:"g"},
   currypaste:        {kcal:60,  p:1,   cat:"Vorrat", price:1.00, unit:"flat"},
   thunfisch:         {kcal:116, p:26,  cat:"Vorrat", price:1.50, unit:"g", role:"protein", fish:true, sub:"kidneybohnen"},
-  kartoffeln:        {kcal:77,  p:2,   cat:"Obst & Gemüse", price:0.002, unit:"g", role:"carb"},
-  kuerbis:           {kcal:26,  p:1,   cat:"Obst & Gemüse", price:0.003, unit:"g"},
+  kartoffeln:        {kcal:77,  p:2,   cat:"Obst & Gemüse", price:0.20, unit:"g", role:"carb"},
+  kuerbis:           {kcal:26,  p:1,   cat:"Obst & Gemüse", price:0.30, unit:"g"},
   polenta:           {kcal:350, p:8,   cat:"Vorrat", price:0.30, unit:"g", role:"carb"},
   linsen_rot:        {kcal:340, p:24,  cat:"Vorrat", price:0.40, unit:"g", role:"protein", veg:true},
-  pak_choi:          {kcal:13,  p:1.5, cat:"Obst & Gemüse", price:0.006, unit:"g"},
+  pak_choi:          {kcal:13,  p:1.5, cat:"Obst & Gemüse", price:0.60, unit:"g"},
   mozzarella:        {kcal:280, p:18,  cat:"Kühlware & Milchprodukte", price:1.00, unit:"g", veg:true},
   pesto:             {kcal:450, p:4,   cat:"Vorrat", price:1.20, unit:"flat"},
-  tofu_natur:        {kcal:145, p:15,  cat:"Kühlware & Milchprodukte", price:0.009, unit:"g", role:"protein", veg:true},
-  kabeljau:          {kcal:82,  p:18,  cat:"Fleisch & Fisch", price:0.018, unit:"g", role:"protein", fish:true, sub:"tofu_natur"},
-  oliven:            {kcal:115, p:1,   cat:"Vorrat", price:0.006, unit:"g"},
+  tofu_natur:        {kcal:145, p:15,  cat:"Kühlware & Milchprodukte", price:0.90, unit:"g", role:"protein", veg:true},
+  kabeljau:          {kcal:82,  p:18,  cat:"Fleisch & Fisch", price:1.80, unit:"g", role:"protein", fish:true, sub:"tofu_natur"},
+  oliven:            {kcal:115, p:1,   cat:"Vorrat", price:0.60, unit:"g"},
   basilikum:         {kcal:23,  p:3.2, cat:"Obst & Gemüse", price:1.00, unit:"flat"},
-  erdnussbutter:     {kcal:590, p:25,  cat:"Vorrat", price:0.008, unit:"g", nuts:true, sub:"frischkaese"},
+  erdnussbutter:     {kcal:590, p:25,  cat:"Vorrat", price:0.80, unit:"g", nuts:true, sub:"frischkaese"},
 };
 
 function ingKcal(key, grams){
@@ -1490,6 +1419,12 @@ function buildUI(){
       '</div>'
     );
 
+    const resetBtn = document.createElement('button');
+    resetBtn.className = 'reset';
+    resetBtn.textContent = 'Haken für Einkauf ' + einkauf.id + ' zurücksetzen';
+    resetBtn.onclick = () => resetEinkauf(einkauf.id);
+    panel.appendChild(resetBtn);
+
     panelsEl.appendChild(panel);
   });
 }
@@ -1534,7 +1469,6 @@ function updateTotals(){
   });
   document.getElementById('week-total').textContent = fmt(grandChecked) + ' / ' + fmt(grandTotal);
   document.getElementById('week-rest').textContent = fmt(grandTotal - grandChecked);
-  refreshQR();
 }
 
 let saveStatus = 'idle'; // idle | saving | saved | failed
@@ -1558,7 +1492,7 @@ function showFailBanner(){
   const el = document.createElement('div');
   el.id = 'save-fail-banner';
   el.style.cssText = 'max-width:640px;margin:0 auto 12px;background:#5A3A2A;border:1px solid #7A5238;color:#F0DFC9;border-radius:8px;padding:10px 14px;font-size:12.5px;text-align:center;';
-  el.textContent = 'Das automatische Speichern schlägt seit mehreren Minuten fehl. Damit nichts verloren geht: den QR-Code weiter unten mit einem anderen Gerät scannen.';
+  el.textContent = 'Das automatische Speichern schlägt seit mehreren Minuten fehl. Bitte Internetverbindung prüfen und die Seite ggf. neu laden.';
   document.querySelector('.wrap').insertBefore(el, document.getElementById('tabs'));
 }
 
@@ -1626,124 +1560,14 @@ async function loadState(){
   updateTotals();
 }
 
-function exportCode(){
-  const json = JSON.stringify(checked);
-  return btoa(unescape(encodeURIComponent(json)));
-}
-
-function importCode(code){
-  const json = decodeURIComponent(escape(atob(code.trim())));
-  return JSON.parse(json);
-}
-
-let qrRefreshTimer = null;
-
-function refreshQR(){
-  clearTimeout(qrRefreshTimer);
-  qrRefreshTimer = setTimeout(() => {
-    const code = exportCode();
-    const qrEl = document.getElementById('qr-container');
-    qrEl.innerHTML = '';
-    try {
-      new QRCode(qrEl, { text: code, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.L });
-    } catch(e) {
-      qrEl.textContent = 'QR-Code konnte nicht erzeugt werden.';
-    }
-  }, 150);
-}
-
-function applyImportedCode(code){
-  const msg = document.getElementById('export-msg');
-  try {
-    checked = importCode(code);
-    document.querySelectorAll('.item').forEach(row => {
-      row.classList.toggle('checked', !!checked[row.dataset.key]);
-    });
-    updateTotals();
-    saveState();
-    msg.textContent = 'Übernommen.';
-    setTimeout(() => { msg.textContent = ''; }, 5000);
-    return true;
-  } catch(e) {
-    msg.textContent = 'Code ungültig – bitte nochmal versuchen.';
-    setTimeout(() => { msg.textContent = ''; }, 5000);
-    return false;
-  }
-}
-
-document.getElementById('import-btn').onclick = () => {
-  const input = document.getElementById('import-input');
-  if (applyImportedCode(input.value)) input.value = '';
-};
-
-let scanStream = null;
-let scanRAF = null;
-
-async function startScan(){
-  const area = document.getElementById('scan-area');
-  const video = document.getElementById('scan-video');
-  const status = document.getElementById('scan-status');
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
-
-  area.classList.add('active');
-  status.textContent = 'Kamera wird gestartet…';
-
-  if (typeof jsQR === 'undefined') {
-    status.textContent = 'Scan-Funktion konnte nicht geladen werden. Bitte Code manuell einfügen.';
-    return;
-  }
-
-  try {
-    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-  } catch(e) {
-    status.textContent = 'Kein Kamerazugriff möglich (Berechtigung verweigert oder nicht unterstützt).';
-    return;
-  }
-
-  video.srcObject = scanStream;
-  status.textContent = 'QR-Code vor die Kamera halten…';
-
-  const tick = () => {
-    if (!scanStream) return;
-    if (video.readyState === video.HAVE_ENOUGH_DATA) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const result = jsQR(imageData.data, imageData.width, imageData.height);
-      if (result && result.data) {
-        status.textContent = 'Code erkannt!';
-        document.getElementById('import-input').value = result.data;
-        stopScan();
-        applyImportedCode(result.data);
-        return;
-      }
-    }
-    scanRAF = requestAnimationFrame(tick);
-  };
-  scanRAF = requestAnimationFrame(tick);
-}
-
-function stopScan(){
-  const area = document.getElementById('scan-area');
-  area.classList.remove('active');
-  if (scanRAF) { cancelAnimationFrame(scanRAF); scanRAF = null; }
-  if (scanStream) {
-    scanStream.getTracks().forEach(t => t.stop());
-    scanStream = null;
-  }
-}
-
-document.getElementById('scan-btn').onclick = startScan;
-document.getElementById('scan-cancel-btn').onclick = stopScan;
-
-document.getElementById('reset-btn').onclick = async () => {
-  checked = {};
-  document.querySelectorAll('.item').forEach(row => row.classList.remove('checked'));
+function resetEinkauf(einkaufId){
+  Object.keys(checked).forEach(key => {
+    if (key.startsWith(einkaufId + '|')) delete checked[key];
+  });
+  document.querySelectorAll('#panel-' + einkaufId + ' .item').forEach(row => row.classList.remove('checked'));
   updateTotals();
   saveState();
-};
+}
 
 // ==== AUTH-STEUERUNG ====
 function showApp(email){
@@ -1998,6 +1822,7 @@ document.getElementById('nw-generate').onclick = async () => {
     await saveWeekMeta(weekId, weeksMeta[weekId]);
     await savePlanForWeek(weekId, plan);
     document.getElementById('newweek-modal').classList.remove('show');
+    currentTabIndex = 0;
     await switchToWeek(weekId);
   } catch(e) {
     msg.style.color = '#B5563E';
