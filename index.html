@@ -353,6 +353,39 @@
     font-size:11px;
     cursor:pointer;
   }
+  .xp-bar-wrap{
+    max-width:420px;
+    margin:0 auto 14px;
+  }
+  .xp-label{
+    display:flex;
+    justify-content:space-between;
+    font-size:11.5px;
+    margin-bottom:4px;
+    color:#C9C3B4;
+  }
+  .xp-label #xp-level{
+    font-weight:700;
+    color:var(--mustard);
+    font-family:Georgia, serif;
+    letter-spacing:0.3px;
+  }
+  .xp-track{
+    height:10px;
+    background:#2C3B31;
+    border:1px solid #445245;
+    border-radius:6px;
+    overflow:hidden;
+  }
+  .xp-fill{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg, #7C8B4A, #D9A441);
+    border-radius:6px 0 0 6px;
+    transition:width .5s ease-out;
+  }
+  .xp-fill.pulse{animation:xppulse .5s ease-out;}
+  @keyframes xppulse{0%{filter:brightness(1);}50%{filter:brightness(1.5);}100%{filter:brightness(1);}}
   .week-picker{
     display:flex;
     align-items:center;
@@ -457,7 +490,9 @@
     opacity:0;
     transition:opacity .3s, transform .3s;
     z-index:201;
-    white-space:nowrap;
+    max-width:88vw;
+    text-align:center;
+    white-space:normal;
   }
   .success-toast.show{
     opacity:1;
@@ -503,6 +538,16 @@
     <p class="date-range" id="date-range">27.07.2026 – 02.08.2026</p>
     <div id="save-status" class="save-status"></div>
   </header>
+
+  <div class="xp-bar-wrap">
+    <div class="xp-label">
+      <span id="xp-level">Level 1</span>
+      <span id="xp-count">0 / 500 XP</span>
+    </div>
+    <div class="xp-track">
+      <div class="xp-fill" id="xp-fill"></div>
+    </div>
+  </div>
 
   <div class="week-picker">
     <button class="week-nav-btn" id="week-prev-btn" title="Vorherige Woche">&lsaquo;</button>
@@ -1308,6 +1353,9 @@ function weekChecklistPath(weekId){
 function weekEatenPath(weekId){
   return `users/${authState.uid}/weeks/${weekId}/eaten`;
 }
+function xpPath(){
+  return `users/${authState.uid}/xp`;
+}
 function weeksMetaPath(){
   return `users/${authState.uid}/weeksMeta`;
 }
@@ -1685,19 +1733,118 @@ async function toggleEaten(dayIdx, slot, row){
   }
   saveEatenState();
 
-  if (eaten[key]) {
-    const dayRows = document.querySelectorAll('.meal-row[data-day-idx="' + dayIdx + '"]');
-    const allEaten = dayRows.length > 0 && [...dayRows].every(r => r.classList.contains('eaten'));
-    if (allEaten) {
-      const dayName = MEALS[dayIdx] ? MEALS[dayIdx].day : 'Tag';
-      celebrateDay(dayName);
-    }
+  const dayRows = document.querySelectorAll('.meal-row[data-day-idx="' + dayIdx + '"]');
+  const allEaten = dayRows.length > 0 && [...dayRows].every(r => r.classList.contains('eaten'));
+
+  if (allEaten) {
+    const dayName = MEALS[dayIdx] ? MEALS[dayIdx].day : 'Tag';
+    await awardDayXP(dayIdx, dayName);
+  } else {
+    await revokeDayXP(dayIdx);
   }
 }
 
-function celebrateDay(dayName){
+// ==== XP & LEVEL-SYSTEM ====
+let xpState = { totalXP: 0, awardedDays: {}, awardedWeeks: {}, highestLevel: 1 };
+
+async function loadXP(){
+  try {
+    const data = await firebaseRequest(xpPath());
+    if (data) xpState = {
+      totalXP: data.totalXP || 0,
+      awardedDays: data.awardedDays || {},
+      awardedWeeks: data.awardedWeeks || {},
+      highestLevel: data.highestLevel || (Math.floor((data.totalXP || 0) / 500) + 1)
+    };
+  } catch(e) {
+    console.warn('XP konnte nicht geladen werden:', e.message);
+  }
+  updateXPDisplay();
+}
+
+async function saveXP(){
+  try {
+    await firebaseRequest(xpPath(), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(xpState)
+    });
+  } catch(e) {
+    console.warn('XP konnte nicht gespeichert werden:', e.message);
+  }
+}
+
+function updateXPDisplay(){
+  const actualLevel = Math.floor(xpState.totalXP / 500) + 1;
+  if (actualLevel > (xpState.highestLevel || 1)) xpState.highestLevel = actualLevel;
+  const displayLevel = Math.max(actualLevel, xpState.highestLevel || 1);
+  const protectedLevel = displayLevel > actualLevel;
+  const inLevel = xpState.totalXP % 500;
+
+  const levelEl = document.getElementById('xp-level');
+  const countEl = document.getElementById('xp-count');
+  const fillEl = document.getElementById('xp-fill');
+  if (!levelEl || !fillEl) return;
+  levelEl.textContent = 'Level ' + displayLevel + (protectedLevel ? ' 🔒' : '');
+  countEl.textContent = protectedLevel ? 'Bestes Level gehalten' : (inLevel + ' / 500 XP');
+  fillEl.style.width = (protectedLevel ? 100 : (inLevel / 500 * 100)) + '%';
+  fillEl.classList.add('pulse');
+  setTimeout(() => fillEl.classList.remove('pulse'), 500);
+}
+
+async function awardDayXP(dayIdx, dayName){
+  const dayAwardKey = currentWeekId + '|' + dayIdx;
+  if (xpState.awardedDays[dayAwardKey]) return; // schon vergeben - kein doppeltes Farmen
+
+  xpState.awardedDays[dayAwardKey] = true;
+  xpState.totalXP += 50;
+  let bonusMsg = '';
+
+  // Prüfen, ob damit auch die ganze Woche (alle 7 Tage) komplett ist
+  let weekComplete = true;
+  for (let d = 0; d < MEALS.length; d++) {
+    const rows = document.querySelectorAll('.meal-row[data-day-idx="' + d + '"]');
+    if (rows.length === 0 || ![...rows].every(r => r.classList.contains('eaten'))) { weekComplete = false; break; }
+  }
+  if (weekComplete && !xpState.awardedWeeks[currentWeekId]) {
+    xpState.awardedWeeks[currentWeekId] = true;
+    xpState.totalXP += 150;
+    bonusMsg = ' + Wochen-Bonus';
+  }
+
+  updateXPDisplay();
+  await saveXP();
+  celebrateDay(dayName, bonusMsg);
+}
+
+async function revokeDayXP(dayIdx){
+  const dayAwardKey = currentWeekId + '|' + dayIdx;
+  let changed = false;
+
+  // Wenn die Woche als komplett belohnt war, kann sie das jetzt nicht mehr sein - Bonus zurücknehmen
+  if (xpState.awardedWeeks[currentWeekId]) {
+    delete xpState.awardedWeeks[currentWeekId];
+    xpState.totalXP = Math.max(0, xpState.totalXP - 150);
+    changed = true;
+  }
+  if (xpState.awardedDays[dayAwardKey]) {
+    delete xpState.awardedDays[dayAwardKey];
+    xpState.totalXP = Math.max(0, xpState.totalXP - 50);
+    changed = true;
+  }
+
+  if (changed) {
+    updateXPDisplay(); // highestLevel bleibt erhalten, sinkt nie
+    await saveXP();
+  }
+}
+
+function celebrateDay(dayName, bonusMsg){
   fireConfetti();
-  showSuccessToast(dayName + ' geschafft! Alle Mahlzeiten genossen.');
+  const msg = bonusMsg
+    ? dayName + ' geschafft! +50 XP – und die ganze Woche komplett! +150 XP Bonus'
+    : dayName + ' geschafft! +50 XP';
+  showSuccessToast(msg);
 }
 
 function fireConfetti(){
@@ -1773,6 +1920,7 @@ function showApp(email){
   document.getElementById('user-email-display').textContent = email || '';
   buildUI();
   initWeeks();
+  loadXP();
 }
 
 function showLogin(msg){
