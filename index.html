@@ -1796,7 +1796,9 @@ async function initWeeks(){
 
   const ids = sortedWeekIds();
   console.log('[DEBUG] Gefundene Wochen-IDs:', ids);
-  currentWeekId = ids[ids.length - 1]; // neueste Woche
+  const todayWeekId = isoDate(mondayOf(new Date()));
+  currentWeekId = ids.includes(todayWeekId) ? todayWeekId : ids[ids.length - 1]; // aktuelle Woche, sonst neueste
+  console.log('[DEBUG] Heutige Woche wäre:', todayWeekId, '- gewählt:', currentWeekId);
   renderWeekSelect();
   updateDateRangeDisplay();
   updateDebugLine(ids);
