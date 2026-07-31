@@ -236,7 +236,7 @@
   @keyframes fadein{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
   .meal-row{
     display:grid;
-    grid-template-columns: 24px 76px 1fr 44px 40px 48px;
+    grid-template-columns: 24px 18px 62px 1fr 44px 40px 48px;
     gap:8px;
     padding:6px 0;
     border-bottom:1px dashed var(--paper-line);
@@ -264,16 +264,15 @@
   .meal-check.just-checked{animation:mealpop .28s ease-out;}
   .meal-label{
     font-weight:600;color:var(--mustard-dark);font-size:12px;padding-top:2px;
-    display:flex;align-items:center;gap:4px;
   }
-  .meal-cat-icon{flex:none;width:14px;height:14px;color:var(--mustard-dark);opacity:0.85;}
+  .meal-cat-icon{width:16px;height:16px;color:var(--mustard-dark);opacity:0.85;padding-top:2px;}
   .meal-cat-icon svg{width:100%;height:100%;}
   .meal-desc{line-height:1.4;}
   .meal-kcal, .meal-p{text-align:right;font-weight:600;padding-top:2px;white-space:nowrap;}
   .meal-price{text-align:right;font-weight:600;padding-top:2px;white-space:nowrap;color:var(--mustard-dark);}
   .meal-header{
     display:grid;
-    grid-template-columns: 24px 76px 1fr 44px 40px 48px;
+    grid-template-columns: 24px 18px 62px 1fr 44px 40px 48px;
     gap:8px;
     font-size:10.5px;
     text-transform:uppercase;
@@ -284,11 +283,11 @@
     margin-bottom:2px;
   }
   .meal-header span{text-align:right;}
-  .meal-header span:nth-child(2), .meal-header span:nth-child(3){text-align:left;}
+  .meal-header span:nth-child(3), .meal-header span:nth-child(4){text-align:left;}
   .meal-note{font-size:11.5px;color:var(--ink-muted);margin-top:6px;}
   .day-total{
     display:grid;
-    grid-template-columns: 24px 76px 1fr 44px 40px 48px;
+    grid-template-columns: 24px 18px 62px 1fr 44px 40px 48px;
     gap:8px;
     padding-top:8px;
     margin-top:2px;
@@ -298,7 +297,7 @@
   }
   .day-sport{
     display:grid;
-    grid-template-columns: 24px 76px 1fr 44px 40px 48px;
+    grid-template-columns: 24px 18px 62px 1fr 44px 40px 48px;
     gap:8px;
     padding-top:6px;
     font-size:12px;
@@ -1516,7 +1515,7 @@ function buildMealsPanel(){
     card.className = 'day-card';
     const style = DAY_STYLE[day.day] || {color:'#B9AE8F', icon:''};
     card.style.setProperty('--day-accent', style.color);
-    let headerHtml = '<div class="meal-header"><span></span><span>Mahlzeit</span><span></span><span>Kcal</span><span>Eiweiß</span><span>Preis</span></div>';
+    let headerHtml = '<div class="meal-header"><span></span><span></span><span>Mahlzeit</span><span></span><span>Kcal</span><span>Eiweiß</span><span>Preis</span></div>';
     let rowsHtml = day.rows.map((r, slot) => {
       const key = dayIdx + '|' + slot;
       const isEaten = !!eaten[key];
@@ -1524,10 +1523,10 @@ function buildMealsPanel(){
       const iconSvg = MEAL_ICONS[cat] || MEAL_ICONS.default;
       return '<div class="meal-row' + (isEaten ? ' eaten' : '') + '" data-day-idx="' + dayIdx + '" data-slot="' + slot + '">' +
         '<div class="meal-check"><svg viewBox="0 0 24 24" fill="none" stroke="#3E6B4F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>' +
-        '<div class="meal-label"><span class="meal-cat-icon">' + iconSvg + '</span>' + r.label + '</div><div class="meal-desc">' + r.desc + '</div><div class="meal-kcal">' + fmtKcal(r.kcal, r.approx) + '</div><div class="meal-p">' + fmtP(r.p, r.approx) + '</div><div class="meal-price">' + fmtPrice(r.price, r.approx) + '</div></div>';
+        '<div class="meal-cat-icon">' + iconSvg + '</div><div class="meal-label">' + r.label + '</div><div class="meal-desc">' + r.desc + '</div><div class="meal-kcal">' + fmtKcal(r.kcal, r.approx) + '</div><div class="meal-p">' + fmtP(r.p, r.approx) + '</div><div class="meal-price">' + fmtPrice(r.price, r.approx) + '</div></div>';
     }).join('');
-    let totalHtml = '<div class="day-total"><div></div><div></div><div>Tagessumme</div><div class="meal-kcal">' + fmtKcal(day.total.kcal, day.total.approx) + '</div><div class="meal-p">' + fmtP(day.total.p, day.total.approx) + '</div><div class="meal-price">' + fmtPrice(day.total.price, day.total.approx) + '</div></div>';
-    let sportHtml = '<div class="day-sport"><div></div><div></div><div>+ Sporttag: ' + day.sport.label + '</div><div class="meal-kcal">+' + Math.round(day.sport.kcal) + '</div><div class="meal-p">+' + Math.round(day.sport.p) + ' g</div><div class="meal-price"></div></div>';
+    let totalHtml = '<div class="day-total"><div></div><div></div><div></div><div>Tagessumme</div><div class="meal-kcal">' + fmtKcal(day.total.kcal, day.total.approx) + '</div><div class="meal-p">' + fmtP(day.total.p, day.total.approx) + '</div><div class="meal-price">' + fmtPrice(day.total.price, day.total.approx) + '</div></div>';
+    let sportHtml = '<div class="day-sport"><div></div><div></div><div></div><div>+ Sporttag: ' + day.sport.label + '</div><div class="meal-kcal">+' + Math.round(day.sport.kcal) + '</div><div class="meal-p">+' + Math.round(day.sport.p) + ' g</div><div class="meal-price"></div></div>';
     let noteHtml = day.note ? '<div class="meal-note">' + day.note + '</div>' : '';
     let diceHtml = currentPlanIsGenerated ? '<button class="dice-btn" data-day-idx="' + dayIdx + '" title="Neue Gerichte nur für diesen Tag würfeln">&#127922; Neu würfeln</button>' : '';
     card.innerHTML = '<h2><span class="day-icon">' + style.icon + '</span>' + day.day + ' <span class="theme">– ' + day.theme + '</span>' + diceHtml + '</h2>' + headerHtml + rowsHtml + totalHtml + sportHtml + noteHtml;
