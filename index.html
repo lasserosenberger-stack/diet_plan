@@ -232,7 +232,7 @@
   @keyframes fadein{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
   .meal-row{
     display:grid;
-    grid-template-columns: 68px 1fr 44px 40px 48px;
+    grid-template-columns: 24px 68px 1fr 44px 40px 48px;
     gap:8px;
     padding:6px 0;
     border-bottom:1px dashed var(--paper-line);
@@ -240,13 +240,32 @@
     align-items:start;
   }
   .meal-row:last-of-type{border-bottom:none;}
+  .meal-row.eaten .meal-desc, .meal-row.eaten .meal-label{
+    text-decoration: line-through;
+    color: var(--ink-muted);
+  }
+  .meal-check{
+    width:18px;height:18px;
+    border-radius:5px;
+    border:1.5px solid #B9AE8F;
+    margin-top:1px;
+    display:flex;align-items:center;justify-content:center;
+    background:#fff;
+    cursor:pointer;
+    flex:none;
+  }
+  .meal-check svg{width:11px;height:11px;opacity:0;transform:scale(0.6);transition:opacity .12s, transform .12s;}
+  .meal-row.eaten .meal-check{background:var(--check-bg);border-color:var(--check);}
+  .meal-row.eaten .meal-check svg{opacity:1;transform:scale(1);}
+  @keyframes mealpop{0%{transform:scale(0.5);}55%{transform:scale(1.25);}100%{transform:scale(1);}}
+  .meal-check.just-checked{animation:mealpop .28s ease-out;}
   .meal-label{font-weight:600;color:var(--mustard-dark);font-size:12px;padding-top:2px;}
   .meal-desc{line-height:1.4;}
   .meal-kcal, .meal-p{text-align:right;font-weight:600;padding-top:2px;white-space:nowrap;}
   .meal-price{text-align:right;font-weight:600;padding-top:2px;white-space:nowrap;color:var(--mustard-dark);}
   .meal-header{
     display:grid;
-    grid-template-columns: 68px 1fr 44px 40px 48px;
+    grid-template-columns: 24px 68px 1fr 44px 40px 48px;
     gap:8px;
     font-size:10.5px;
     text-transform:uppercase;
@@ -257,11 +276,11 @@
     margin-bottom:2px;
   }
   .meal-header span{text-align:right;}
-  .meal-header span:first-child, .meal-header span:nth-child(2){text-align:left;}
+  .meal-header span:nth-child(2), .meal-header span:nth-child(3){text-align:left;}
   .meal-note{font-size:11.5px;color:var(--ink-muted);margin-top:6px;}
   .day-total{
     display:grid;
-    grid-template-columns: 68px 1fr 44px 40px 48px;
+    grid-template-columns: 24px 68px 1fr 44px 40px 48px;
     gap:8px;
     padding-top:8px;
     margin-top:2px;
@@ -271,7 +290,7 @@
   }
   .day-sport{
     display:grid;
-    grid-template-columns: 68px 1fr 44px 40px 48px;
+    grid-template-columns: 24px 68px 1fr 44px 40px 48px;
     gap:8px;
     padding-top:6px;
     font-size:12px;
@@ -420,6 +439,31 @@
   .modal-row{display:flex;gap:8px;margin-top:18px;}
   .modal-row .sync-btn{flex:1;background:transparent;border:1px solid var(--mustard-dark);color:var(--mustard-dark);padding:9px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;}
   .modal-row .nw-primary{background:var(--mustard);color:#2A1F0A;border:none;}
+  @keyframes confetti-fall{
+    0%{ transform: translateY(0) translateX(0) rotate(0deg); opacity:0.9; }
+    100%{ transform: translateY(105vh) translateX(var(--drift)) rotate(540deg); opacity:0; }
+  }
+  .success-toast{
+    position:fixed;
+    left:50%;
+    bottom:24px;
+    transform:translate(-50%, 20px);
+    background:var(--mustard);
+    color:#2A1F0A;
+    padding:12px 22px;
+    border-radius:10px;
+    font-weight:700;
+    font-size:14px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.35);
+    opacity:0;
+    transition:opacity .3s, transform .3s;
+    z-index:201;
+    white-space:nowrap;
+  }
+  .success-toast.show{
+    opacity:1;
+    transform:translate(-50%, 0);
+  }
 </style>
 </head>
 <body>
@@ -1178,6 +1222,7 @@ const CAT_ICON = {
 
 const STORAGE_KEY = "diaet-einkauf-checked-v1";
 let checked = {};
+let eaten = {};
 
 // ==== FIREBASE KONFIGURATION ====
 const FIREBASE_DB_URL = "https://diet-c0b8d-default-rtdb.europe-west1.firebasedatabase.app";
@@ -1260,6 +1305,9 @@ let currentWeekId = null;
 
 function weekChecklistPath(weekId){
   return `users/${authState.uid}/weeks/${weekId}/checked`;
+}
+function weekEatenPath(weekId){
+  return `users/${authState.uid}/weeks/${weekId}/eaten`;
 }
 function weeksMetaPath(){
   return `users/${authState.uid}/weeksMeta`;
@@ -1377,12 +1425,16 @@ function buildMealsPanel(){
     card.className = 'day-card';
     const style = DAY_STYLE[day.day] || {color:'#B9AE8F', icon:''};
     card.style.setProperty('--day-accent', style.color);
-    let headerHtml = '<div class="meal-header"><span>Mahlzeit</span><span></span><span>Kcal</span><span>Eiweiß</span><span>Preis</span></div>';
-    let rowsHtml = day.rows.map(r =>
-      '<div class="meal-row"><div class="meal-label">' + r.label + '</div><div class="meal-desc">' + r.desc + '</div><div class="meal-kcal">' + fmtKcal(r.kcal, r.approx) + '</div><div class="meal-p">' + fmtP(r.p, r.approx) + '</div><div class="meal-price">' + fmtPrice(r.price, r.approx) + '</div></div>'
-    ).join('');
-    let totalHtml = '<div class="day-total"><div></div><div>Tagessumme</div><div class="meal-kcal">' + fmtKcal(day.total.kcal, day.total.approx) + '</div><div class="meal-p">' + fmtP(day.total.p, day.total.approx) + '</div><div class="meal-price">' + fmtPrice(day.total.price, day.total.approx) + '</div></div>';
-    let sportHtml = '<div class="day-sport"><div></div><div>+ Sporttag: ' + day.sport.label + '</div><div class="meal-kcal">+' + Math.round(day.sport.kcal) + '</div><div class="meal-p">+' + Math.round(day.sport.p) + ' g</div><div class="meal-price"></div></div>';
+    let headerHtml = '<div class="meal-header"><span></span><span>Mahlzeit</span><span></span><span>Kcal</span><span>Eiweiß</span><span>Preis</span></div>';
+    let rowsHtml = day.rows.map((r, slot) => {
+      const key = dayIdx + '|' + slot;
+      const isEaten = !!eaten[key];
+      return '<div class="meal-row' + (isEaten ? ' eaten' : '') + '" data-day-idx="' + dayIdx + '" data-slot="' + slot + '">' +
+        '<div class="meal-check"><svg viewBox="0 0 24 24" fill="none" stroke="#3E6B4F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>' +
+        '<div class="meal-label">' + r.label + '</div><div class="meal-desc">' + r.desc + '</div><div class="meal-kcal">' + fmtKcal(r.kcal, r.approx) + '</div><div class="meal-p">' + fmtP(r.p, r.approx) + '</div><div class="meal-price">' + fmtPrice(r.price, r.approx) + '</div></div>';
+    }).join('');
+    let totalHtml = '<div class="day-total"><div></div><div></div><div>Tagessumme</div><div class="meal-kcal">' + fmtKcal(day.total.kcal, day.total.approx) + '</div><div class="meal-p">' + fmtP(day.total.p, day.total.approx) + '</div><div class="meal-price">' + fmtPrice(day.total.price, day.total.approx) + '</div></div>';
+    let sportHtml = '<div class="day-sport"><div></div><div></div><div>+ Sporttag: ' + day.sport.label + '</div><div class="meal-kcal">+' + Math.round(day.sport.kcal) + '</div><div class="meal-p">+' + Math.round(day.sport.p) + ' g</div><div class="meal-price"></div></div>';
     let noteHtml = day.note ? '<div class="meal-note">' + day.note + '</div>' : '';
     let diceHtml = currentPlanIsGenerated ? '<button class="dice-btn" data-day-idx="' + dayIdx + '" title="Neue Gerichte nur für diesen Tag würfeln">&#127922; Neu würfeln</button>' : '';
     card.innerHTML = '<h2><span class="day-icon">' + style.icon + '</span>' + day.day + ' <span class="theme">– ' + day.theme + '</span>' + diceHtml + '</h2>' + headerHtml + rowsHtml + totalHtml + sportHtml + noteHtml;
@@ -1390,6 +1442,11 @@ function buildMealsPanel(){
   });
   panel.querySelectorAll('.dice-btn').forEach(btn => {
     btn.onclick = () => randomizeDayInUI(parseInt(btn.dataset.dayIdx, 10));
+  });
+  panel.querySelectorAll('.meal-row').forEach(row => {
+    row.querySelector('.meal-check').onclick = () => toggleEaten(
+      parseInt(row.dataset.dayIdx, 10), parseInt(row.dataset.slot, 10), row
+    );
   });
   return panel;
 }
@@ -1577,6 +1634,110 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && pendingSave) saveState(0);
 });
 
+async function firebaseSetEaten(data){
+  if (!currentWeekId) throw new Error('Keine Woche ausgewählt');
+  return firebaseRequest(weekEatenPath(currentWeekId), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+}
+
+async function firebaseGetEaten(){
+  if (!currentWeekId) throw new Error('Keine Woche ausgewählt');
+  return firebaseRequest(weekEatenPath(currentWeekId));
+}
+
+async function saveEatenState(){
+  try {
+    await firebaseSetEaten(eaten);
+  } catch(e) {
+    console.warn('Firebase saveEatenState Fehler:', e.message);
+  }
+}
+
+async function loadEatenState(){
+  let loaded = false;
+  let data = null;
+  for (let i = 0; i < 3 && !loaded; i++) {
+    try {
+      data = await firebaseGetEaten();
+      loaded = true;
+    } catch(e) {
+      console.warn('Firebase loadEatenState Fehler:', e.message);
+      if (i < 2) await new Promise(r => setTimeout(r, 600));
+    }
+  }
+  eaten = (loaded && data) ? data : {};
+  document.querySelectorAll('.meal-row').forEach(row => {
+    const key = row.dataset.dayIdx + '|' + row.dataset.slot;
+    row.classList.toggle('eaten', !!eaten[key]);
+  });
+}
+
+async function toggleEaten(dayIdx, slot, row){
+  const key = dayIdx + '|' + slot;
+  eaten[key] = !eaten[key];
+  row.classList.toggle('eaten', eaten[key]);
+  if (eaten[key]) {
+    const box = row.querySelector('.meal-check');
+    box.classList.add('just-checked');
+    setTimeout(() => box.classList.remove('just-checked'), 300);
+  }
+  saveEatenState();
+
+  if (eaten[key]) {
+    const dayRows = document.querySelectorAll('.meal-row[data-day-idx="' + dayIdx + '"]');
+    const allEaten = dayRows.length > 0 && [...dayRows].every(r => r.classList.contains('eaten'));
+    if (allEaten) {
+      const dayName = MEALS[dayIdx] ? MEALS[dayIdx].day : 'Tag';
+      celebrateDay(dayName);
+    }
+  }
+}
+
+function celebrateDay(dayName){
+  fireConfetti();
+  showSuccessToast(dayName + ' geschafft! Alle Mahlzeiten genossen.');
+}
+
+function fireConfetti(){
+  const colors = ['#D9A441', '#7C8B4A', '#B5563E', '#4A6C8C', '#8A5A9C'];
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:200;overflow:hidden;';
+  document.body.appendChild(container);
+  const count = 60;
+  for (let i = 0; i < count; i++) {
+    const piece = document.createElement('div');
+    const size = 6 + Math.random() * 6;
+    const startX = Math.random() * 100;
+    const duration = 1.6 + Math.random() * 1.2;
+    const delay = Math.random() * 0.3;
+    const rotate = Math.random() * 360;
+    const drift = (Math.random() - 0.5) * 200;
+    piece.style.cssText =
+      'position:absolute; top:-20px; left:' + startX + 'vw; width:' + size + 'px; height:' + (size*0.4) + 'px; ' +
+      'background:' + colors[i % colors.length] + '; opacity:0.9; ' +
+      'transform:rotate(' + rotate + 'deg); border-radius:2px; ' +
+      'animation:confetti-fall ' + duration + 's ease-in ' + delay + 's forwards;';
+    piece.style.setProperty('--drift', drift + 'px');
+    container.appendChild(piece);
+  }
+  setTimeout(() => container.remove(), 3200);
+}
+
+function showSuccessToast(msg){
+  const el = document.createElement('div');
+  el.className = 'success-toast';
+  el.innerHTML = '&#127881; ' + msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.classList.add('show'), 20);
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 400);
+  }, 3200);
+}
+
 async function loadState(){
   let loaded = false;
   let data = null;
@@ -1594,6 +1755,7 @@ async function loadState(){
     row.classList.toggle('checked', !!checked[row.dataset.key]);
   });
   updateTotals();
+  await loadEatenState();
 }
 
 function resetEinkauf(einkaufId){
@@ -1991,6 +2153,8 @@ async function randomizeDayInUI(dayIdx){
     await savePlanForWeek(currentWeekId, plan);
     MEALS = plan.meals;
     DATA = plan.data;
+    for (let slot = 0; slot < 4; slot++) delete eaten[dayIdx + '|' + slot];
+    saveEatenState();
     buildUI();
     await loadState();
   } catch(e) {
