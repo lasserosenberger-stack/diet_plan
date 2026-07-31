@@ -20,7 +20,9 @@
   body{
     margin:0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg);
+    background-color: var(--bg);
+    background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 18px 18px;
     color: var(--ink);
     padding: 20px 14px 40px;
   }
@@ -171,6 +173,7 @@
     padding:14px 16px 10px;
     margin-bottom:14px;
     position:relative;
+    box-shadow:0 2px 8px rgba(15,20,17,0.25), 0 1px 2px rgba(15,20,17,0.15);
   }
   .day-card h2{
     font-family: Georgia, serif;
@@ -215,7 +218,7 @@
   .cat-icon{flex:none;width:15px;height:15px;}
   .cat-icon svg{width:100%;height:100%;}
   .header-deco{display:flex;justify-content:center;margin-bottom:6px;}
-  .header-deco svg{width:120px;height:22px;}
+  .header-deco svg{width:170px;height:28px;}
   .complete-badge{
     display:none;
     text-align:center;
@@ -233,7 +236,7 @@
   @keyframes fadein{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
   .meal-row{
     display:grid;
-    grid-template-columns: 24px 68px 1fr 44px 40px 48px;
+    grid-template-columns: 24px 76px 1fr 44px 40px 48px;
     gap:8px;
     padding:6px 0;
     border-bottom:1px dashed var(--paper-line);
@@ -259,13 +262,18 @@
   .meal-row.eaten .meal-check svg{opacity:1;transform:scale(1);}
   @keyframes mealpop{0%{transform:scale(0.5);}55%{transform:scale(1.25);}100%{transform:scale(1);}}
   .meal-check.just-checked{animation:mealpop .28s ease-out;}
-  .meal-label{font-weight:600;color:var(--mustard-dark);font-size:12px;padding-top:2px;}
+  .meal-label{
+    font-weight:600;color:var(--mustard-dark);font-size:12px;padding-top:2px;
+    display:flex;align-items:center;gap:4px;
+  }
+  .meal-cat-icon{flex:none;width:14px;height:14px;color:var(--mustard-dark);opacity:0.85;}
+  .meal-cat-icon svg{width:100%;height:100%;}
   .meal-desc{line-height:1.4;}
   .meal-kcal, .meal-p{text-align:right;font-weight:600;padding-top:2px;white-space:nowrap;}
   .meal-price{text-align:right;font-weight:600;padding-top:2px;white-space:nowrap;color:var(--mustard-dark);}
   .meal-header{
     display:grid;
-    grid-template-columns: 24px 68px 1fr 44px 40px 48px;
+    grid-template-columns: 24px 76px 1fr 44px 40px 48px;
     gap:8px;
     font-size:10.5px;
     text-transform:uppercase;
@@ -280,7 +288,7 @@
   .meal-note{font-size:11.5px;color:var(--ink-muted);margin-top:6px;}
   .day-total{
     display:grid;
-    grid-template-columns: 24px 68px 1fr 44px 40px 48px;
+    grid-template-columns: 24px 76px 1fr 44px 40px 48px;
     gap:8px;
     padding-top:8px;
     margin-top:2px;
@@ -290,7 +298,7 @@
   }
   .day-sport{
     display:grid;
-    grid-template-columns: 24px 68px 1fr 44px 40px 48px;
+    grid-template-columns: 24px 76px 1fr 44px 40px 48px;
     gap:8px;
     padding-top:6px;
     font-size:12px;
@@ -524,14 +532,18 @@
   </div>
   <header>
     <div class="header-deco">
-      <svg viewBox="0 0 120 22" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#D9A441" stroke-width="1.4" stroke-linecap="round">
-        <path d="M2 11 C 20 2, 30 2, 40 11"/>
-        <path d="M42 11 h6"/>
-        <circle cx="60" cy="11" r="3.2" fill="#D9A441" stroke="none"/>
-        <path d="M55 8 q5 -6 10 0" stroke-width="1.1"/>
-        <path d="M55 14 q5 6 10 0" stroke-width="1.1"/>
-        <path d="M72 11 h6"/>
-        <path d="M80 11 C 90 2, 100 2, 118 11"/>
+      <svg viewBox="0 0 180 30" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#D9A441" stroke-width="1.4" stroke-linecap="round">
+        <path d="M4 15 C 30 3, 45 3, 60 15"/>
+        <path d="M63 15 h8"/>
+        <path d="M78 8c-3 3-3 7 0 10 3-3 3-7 0-10Z" fill="#7C8B4A" stroke="#7C8B4A" stroke-width="0.6"/>
+        <path d="M78 13v6" stroke-width="1"/>
+        <circle cx="90" cy="15" r="3.6" fill="#D9A441" stroke="none"/>
+        <path d="M84 11 q6 -7 12 0" stroke-width="1.1"/>
+        <path d="M84 19 q6 7 12 0" stroke-width="1.1"/>
+        <path d="M102 15 h8"/>
+        <path d="M112 8c3 3 3 7 0 10-3-3-3-7 0-10Z" fill="#7C8B4A" stroke="#7C8B4A" stroke-width="0.6"/>
+        <path d="M112 13v6" stroke-width="1"/>
+        <path d="M120 15 C 135 3, 150 3, 176 15"/>
       </svg>
     </div>
     <h1>Ernährungsplan</h1>
@@ -1041,6 +1053,37 @@ const SNACK_POOL = [
   {id:"s12", name:"Kokosjoghurt mit Beeren", items:[["kokosjoghurt",180],["beeren",80],["leinsamen",10]]},
 ];
 
+
+// Kategorie je Gericht - für die kleinen Icons in der Mahlzeitenübersicht.
+const DISH_CATEGORY = {
+  b1:"bowl", b2:"porridge", b3:"bowl", b4:"ei", b5:"bowl", b6:"porridge", b7:"ei",
+  b8:"bowl", b9:"bowl", b10:"brot", b11:"bowl", b12:"porridge",
+  m1:"salat", m2:"ofen", m3:"bowl", m4:"pfanne", m5:"bowl", m6:"wrap", m7:"brot",
+  m8:"bowl", m9:"curry", m10:"pfanne", m11:"suppe", m12:"suppe", m13:"salat",
+  m14:"ofen", m15:"suppe", m16:"pasta", m17:"curry", m18:"salat", m19:"ofen",
+  m20:"pfanne", m21:"ofen", m22:"pfanne", m23:"salat", m24:"curry", m25:"suppe",
+  m26:"curry", m27:"bowl", m28:"pasta",
+  s1:"snack", s2:"snack", s3:"snack", s4:"snack", s5:"snack", s6:"snack",
+  s7:"snack", s8:"snack", s9:"snack", s10:"snack", s11:"snack", s12:"snack",
+};
+
+// Kleine, konsistente Linien-Icons je Kategorie (24x24 Viewbox, wie die Tages-Icons).
+const MEAL_ICONS = {
+  bowl:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18a9 8 0 0 1-9 7 9 8 0 0 1-9-7Z"/><path d="M8 11c0-2 1-4 4-4s4 2 4 4"/></svg>',
+  porridge: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16a8 6 0 0 1-8 6 8 6 0 0 1-8-6Z"/><path d="M9 6c-1 1-1 2 0 3M13 5c-1 1-1 2 0 3"/></svg>',
+  ei:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14c0-4 3-6 5-6 1 0 1 1 2 1s3-2 5-1c3 1 4 4 4 6a6 4 0 0 1-8 2 6 4 0 0 1-8-2Z"/><circle cx="12" cy="13" r="2.3"/></svg>',
+  brot:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11c0-4 3-7 8-7s8 3 8 7v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z"/><path d="M9 11v6M15 11v6"/></svg>',
+  salat:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13c3-7 15-7 18 0Z"/><path d="M3 13h18M12 13V6M8 13c0-3 1-5 2-6M16 13c0-3-1-5-2-6"/></svg>',
+  ofen:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="16" height="13" rx="1.5"/><path d="M4 11h16"/><circle cx="8" cy="8.5" r="0.6" fill="currentColor" stroke="none"/><circle cx="11" cy="8.5" r="0.6" fill="currentColor" stroke="none"/></svg>',
+  pfanne:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="12" r="7"/><path d="M18 9l5-3"/></svg>',
+  wrap:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8c4-3 10-3 14 0l-2 11c-3 2-7 2-10 0Z"/><path d="M8 11c2-1 6-1 8 0M7.5 14c3-1 6-1 9 0"/></svg>',
+  curry:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16a8 6 0 0 1-8 6 8 6 0 0 1-8-6Z"/><path d="M9 6c-1 1-1 2 0 3M13 5c-1 1-1 2 0 3M17 6c-1 1-1 2 0 3"/></svg>',
+  suppe:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16v3a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5Z"/><path d="M2 12h20M6 12V9M18 12V9"/></svg>',
+  pasta:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14c2-6 14-6 16 0"/><path d="M6 14c2 3 10 3 12 0"/><path d="M9 14c1 2 5 2 6 0"/></svg>',
+  snack:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4c3 3 7 8 4 13a5 5 0 0 1-8 0c-3-5 1-10 4-13Z"/><path d="M12 4c0 1.5 1 2 2 2"/></svg>',
+  default:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/></svg>',
+};
+
 const WEEKDAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
 // Ungefähre Verteilung des Tagesziels auf die vier Mahlzeiten
 const MEAL_KCAL_SHARE = [0.20, 0.32, 0.30, 0.18];
@@ -1477,9 +1520,11 @@ function buildMealsPanel(){
     let rowsHtml = day.rows.map((r, slot) => {
       const key = dayIdx + '|' + slot;
       const isEaten = !!eaten[key];
+      const cat = DISH_CATEGORY[r._dishId] || 'default';
+      const iconSvg = MEAL_ICONS[cat] || MEAL_ICONS.default;
       return '<div class="meal-row' + (isEaten ? ' eaten' : '') + '" data-day-idx="' + dayIdx + '" data-slot="' + slot + '">' +
         '<div class="meal-check"><svg viewBox="0 0 24 24" fill="none" stroke="#3E6B4F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>' +
-        '<div class="meal-label">' + r.label + '</div><div class="meal-desc">' + r.desc + '</div><div class="meal-kcal">' + fmtKcal(r.kcal, r.approx) + '</div><div class="meal-p">' + fmtP(r.p, r.approx) + '</div><div class="meal-price">' + fmtPrice(r.price, r.approx) + '</div></div>';
+        '<div class="meal-label"><span class="meal-cat-icon">' + iconSvg + '</span>' + r.label + '</div><div class="meal-desc">' + r.desc + '</div><div class="meal-kcal">' + fmtKcal(r.kcal, r.approx) + '</div><div class="meal-p">' + fmtP(r.p, r.approx) + '</div><div class="meal-price">' + fmtPrice(r.price, r.approx) + '</div></div>';
     }).join('');
     let totalHtml = '<div class="day-total"><div></div><div></div><div>Tagessumme</div><div class="meal-kcal">' + fmtKcal(day.total.kcal, day.total.approx) + '</div><div class="meal-p">' + fmtP(day.total.p, day.total.approx) + '</div><div class="meal-price">' + fmtPrice(day.total.price, day.total.approx) + '</div></div>';
     let sportHtml = '<div class="day-sport"><div></div><div></div><div>+ Sporttag: ' + day.sport.label + '</div><div class="meal-kcal">+' + Math.round(day.sport.kcal) + '</div><div class="meal-p">+' + Math.round(day.sport.p) + ' g</div><div class="meal-price"></div></div>';
