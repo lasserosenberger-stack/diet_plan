@@ -560,6 +560,9 @@ function showFatalError(msg){
 }
 // ==== ENDE GLOBALER FEHLER-HANDLER ====
 
+const APP_VERSION = "v8-2026-07-31-preisfix-zeitzone";
+console.log('[DEBUG] App-Version:', APP_VERSION);
+
 const DEFAULT_MEALS = [
   {day:"Montag", theme:"Griechisch inspiriert", total:{kcal:1471,p:128, price:10.05},
     sport:{label:"30 g Mandeln + 1 Banane (120 g)", kcal:260, p:8},
@@ -1719,19 +1722,24 @@ async function switchToWeek(weekId){
   currentWeekId = weekId;
   renderWeekSelect();
   updateDateRangeDisplay();
+  updateDebugLine(sortedWeekIds());
   await applyWeekPlan(weekId);
   await loadState();
 }
 
 async function initWeeks(){
+  console.log('[DEBUG] initWeeks gestartet. UID:', authState.uid);
   try {
     weeksMeta = await fetchWeeksMeta();
+    console.log('[DEBUG] weeksMeta von Firebase geladen:', JSON.stringify(weeksMeta));
   } catch(e) {
+    console.log('[DEBUG] fetchWeeksMeta FEHLER:', e.message);
     showAppError('Wochenliste konnte nicht geladen werden (' + e.message + ').');
     weeksMeta = {};
   }
 
   if (!weeksMeta || Object.keys(weeksMeta).length === 0) {
+    console.log('[DEBUG] Keine Wochen gefunden - erstelle Standardwoche.');
     const monday = mondayOf(new Date());
     const sunday = addDays(monday, 6);
     const weekId = isoDate(monday);
@@ -1740,11 +1748,24 @@ async function initWeeks(){
   }
 
   const ids = sortedWeekIds();
+  console.log('[DEBUG] Gefundene Wochen-IDs:', ids);
   currentWeekId = ids[ids.length - 1]; // neueste Woche
   renderWeekSelect();
   updateDateRangeDisplay();
+  updateDebugLine(ids);
   await applyWeekPlan(currentWeekId);
   await loadState();
+}
+
+function updateDebugLine(ids){
+  let el = document.getElementById('debug-line');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'debug-line';
+    el.style.cssText = 'text-align:center;font-size:10px;color:#6A7A6C;margin-top:2px;font-family:monospace;';
+    document.querySelector('.week-picker').insertAdjacentElement('afterend', el);
+  }
+  el.textContent = `Debug: ${APP_VERSION} · UID ${authState.uid ? authState.uid.slice(0,8) : '?'} · ${ids.length} Woche(n): ${ids.join(', ')}`;
 }
 
 document.getElementById('week-select').onchange = (e) => switchToWeek(e.target.value);
