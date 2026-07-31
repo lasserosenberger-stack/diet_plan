@@ -1306,7 +1306,14 @@ function fmtDateDE(d){
   return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 function isoDate(d){
-  return d.toISOString().slice(0,10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return y + '-' + m + '-' + day;
+}
+function parseISODate(s){
+  const [y, m, d] = s.split('-').map(Number);
+  return new Date(y, m-1, d);
 }
 function addDays(d, n){
   const nd = new Date(d);
@@ -1656,7 +1663,7 @@ function renderWeekSelect(){
     if (!meta || !meta.start || !meta.end) return;
     const opt = document.createElement('option');
     opt.value = id;
-    opt.textContent = `${fmtDateDE(new Date(meta.start))} – ${fmtDateDE(new Date(meta.end))}`;
+    opt.textContent = `${fmtDateDE(parseISODate(meta.start))} – ${fmtDateDE(parseISODate(meta.end))}`;
     sel.appendChild(opt);
   });
   sel.value = currentWeekId;
@@ -1666,7 +1673,7 @@ function updateDateRangeDisplay(){
   const meta = weeksMeta[currentWeekId];
   if (meta) {
     document.getElementById('date-range').textContent =
-      `${fmtDateDE(new Date(meta.start))} – ${fmtDateDE(new Date(meta.end))}`;
+      `${fmtDateDE(parseISODate(meta.start))} – ${fmtDateDE(parseISODate(meta.end))}`;
   }
 }
 
@@ -1761,7 +1768,7 @@ document.getElementById('week-delete-btn').onclick = async () => {
     return;
   }
   const meta = weeksMeta[currentWeekId];
-  const label = meta ? `${fmtDateDE(new Date(meta.start))} – ${fmtDateDE(new Date(meta.end))}` : currentWeekId;
+  const label = meta ? `${fmtDateDE(parseISODate(meta.start))} – ${fmtDateDE(parseISODate(meta.end))}` : currentWeekId;
   if (!confirm(`Woche ${label} wirklich löschen? Plan und Einkaufshaken gehen dabei unwiderruflich verloren.`)) return;
 
   const idx = ids.indexOf(currentWeekId);
@@ -1803,7 +1810,7 @@ document.getElementById('nw-generate').onclick = async () => {
   try {
     const ids = sortedWeekIds().filter(id => weeksMeta[id] && weeksMeta[id].start);
     const lastId = ids.length ? ids[ids.length - 1] : null;
-    const lastStart = lastId ? new Date(weeksMeta[lastId].start) : mondayOf(new Date());
+    const lastStart = lastId ? parseISODate(weeksMeta[lastId].start) : mondayOf(new Date());
     const baseStart = isNaN(lastStart.getTime()) ? mondayOf(new Date()) : lastStart;
     const newStart = lastId ? addDays(baseStart, 7) : baseStart;
     const newEnd = addDays(newStart, 6);
