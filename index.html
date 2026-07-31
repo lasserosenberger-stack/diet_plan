@@ -497,8 +497,8 @@
     <label class="modal-label">Ernährungseinschränkungen</label>
     <div class="modal-checks">
       <label><input type="checkbox" id="nw-veg"> Vegetarisch</label>
+      <label><input type="checkbox" id="nw-vegan"> Vegan</label>
       <label><input type="checkbox" id="nw-nofish"> Kein Fisch</label>
-      <label><input type="checkbox" id="nw-nopork"> Kein Schweinefleisch</label>
       <label><input type="checkbox" id="nw-nonuts"> Keine Nüsse</label>
     </div>
 
@@ -524,8 +524,8 @@
     <label class="modal-label">Ernährungseinschränkungen</label>
     <div class="modal-checks">
       <label><input type="checkbox" id="st-veg"> Vegetarisch</label>
+      <label><input type="checkbox" id="st-vegan"> Vegan</label>
       <label><input type="checkbox" id="st-nofish"> Kein Fisch</label>
-      <label><input type="checkbox" id="st-nopork"> Kein Schweinefleisch</label>
       <label><input type="checkbox" id="st-nonuts"> Keine Nüsse</label>
     </div>
 
@@ -747,94 +747,97 @@ let currentPlanIsGenerated = false;
 // Nährwerte pro 100g (kcal, p=Protein g), Kategorie für Einkaufsliste, Preis pro 100g (EUR)
 // bzw. bei unit:'stueck' Preis pro Stück statt pro 100g. tags: veg(vegetarisch ok), fish, pork, nuts.
 const NUTRI = {
-  haferkleie:        {kcal:350, p:17,  cat:"Vorrat", price:0.50, unit:"g"},
-  skyr:              {kcal:65,  p:10,  cat:"Kühlware & Milchprodukte", price:0.67, unit:"g"},
-  beeren:            {kcal:45,  p:0.8, cat:"Vorrat", price:0.63, unit:"g"},
-  chiasamen:         {kcal:486, p:17,  cat:"Vorrat", price:2.00, unit:"g"},
-  bulgur:            {kcal:342, p:12,  cat:"Vorrat", price:0.36, unit:"g", role:"carb"},
-  linsen_gekocht:    {kcal:116, p:9,   cat:"Vorrat", price:0.36, unit:"g", role:"protein", veg:true},
-  gurke:             {kcal:12,  p:0.6, cat:"Obst & Gemüse", price:0.20, unit:"g"},
-  tomaten:           {kcal:18,  p:0.9, cat:"Obst & Gemüse", price:0.40, unit:"g"},
-  feta:              {kcal:264, p:14,  cat:"Kühlware & Milchprodukte", price:1.10, unit:"g", veg:true},
-  zwiebel_rot:       {kcal:40,  p:1.1, cat:"Obst & Gemüse", price:0.60, unit:"g"},
-  zitrone:           {kcal:2,   p:0.1, cat:"Obst & Gemüse", price:0.50, unit:"stueck"},
-  olivenoel:         {kcal:884, p:0,   cat:"Vorrat", price:0.80, unit:"g"},
-  huehnchen:         {kcal:165, p:31,  cat:"Fleisch & Fisch", price:1.70, unit:"g", role:"protein", fish:false, pork:false, veg:false, sub:"raeuchertofu"},
-  zucchini:          {kcal:17,  p:1.2, cat:"Obst & Gemüse", price:0.30, unit:"g"},
-  paprika:           {kcal:31,  p:1,   cat:"Obst & Gemüse", price:0.47, unit:"g"},
-  tzatziki:          {kcal:90,  p:3.5, cat:"Kühlware & Milchprodukte", price:0.80, unit:"g"},
-  frischkaese:       {kcal:98,  p:12,  cat:"Kühlware & Milchprodukte", price:0.75, unit:"g", role:"protein", veg:true},
-  radieschen:        {kcal:16,  p:0.7, cat:"Obst & Gemüse", price:0.60, unit:"g"},
-  ei:                {kcal:155, p:13,  cat:"Kühlware & Milchprodukte", price:0.30, unit:"stueck", role:"protein", veg:true},
-  spinat:            {kcal:23,  p:2.9, cat:"Obst & Gemüse", price:1.00, unit:"g"},
-  parmesan:          {kcal:400, p:35,  cat:"Kühlware & Milchprodukte", price:2.50, unit:"g", veg:true},
-  reis_weiss:        {kcal:350, p:7,   cat:"Vorrat", price:0.36, unit:"g", role:"carb"},
-  raeuchertofu:      {kcal:150, p:15,  cat:"Kühlware & Milchprodukte", price:1.10, unit:"g", role:"protein", veg:true},
-  edamame:           {kcal:120, p:11,  cat:"Kühlware & Milchprodukte", price:0.63, unit:"g", role:"protein", veg:true},
-  sesam:             {kcal:570, p:18,  cat:"Vorrat", price:1.20, unit:"g", nuts:false},
-  fruehlzwiebel:     {kcal:30,  p:1.5, cat:"Obst & Gemüse", price:1.00, unit:"g"},
-  sojasauce:         {kcal:60,  p:6,   cat:"Vorrat", price:0.72, unit:"g"},
-  ingwer:            {kcal:80,  p:2,   cat:"Obst & Gemüse", price:1.00, unit:"g"},
-  garnelen:          {kcal:90,  p:20,  cat:"Fleisch & Fisch", price:2.25, unit:"g", role:"protein", fish:true, sub:"raeuchertofu"},
-  brokkoli:          {kcal:34,  p:2.8, cat:"Obst & Gemüse", price:0.45, unit:"g"},
-  karotten:          {kcal:41,  p:0.9, cat:"Obst & Gemüse", price:0.20, unit:"g"},
-  reis_braun:        {kcal:360, p:7.5, cat:"Vorrat", price:0.36, unit:"g", role:"carb"},
-  oel:               {kcal:884, p:0,   cat:"Vorrat", price:0.80, unit:"g"},
-  knoblauch:         {kcal:150, p:6.5, cat:"Obst & Gemüse", price:1.20, unit:"g"},
-  leinsamen:         {kcal:534, p:18,  cat:"Vorrat", price:0.60, unit:"g"},
-  schwarze_bohnen:   {kcal:132, p:8.9, cat:"Vorrat", price:0.42, unit:"g", role:"protein", veg:true},
-  mais:              {kcal:96,  p:3.2, cat:"Vorrat", price:0.64, unit:"g"},
-  avocado:           {kcal:160, p:2,   cat:"Obst & Gemüse", price:0.80, unit:"g"},
-  koriander:         {kcal:23,  p:2.1, cat:"Obst & Gemüse", price:1.50, unit:"stueck"},
-  limette:           {kcal:2,   p:0.1, cat:"Obst & Gemüse", price:0.40, unit:"stueck"},
-  huettenkaese:      {kcal:98,  p:11,  cat:"Kühlware & Milchprodukte", price:0.90, unit:"g", role:"protein", veg:true},
-  tortilla:          {kcal:275, p:8,   cat:"Vorrat", price:0.30, unit:"stueck", role:"carb"},
-  kidneybohnen:      {kcal:127, p:8.7, cat:"Vorrat", price:0.42, unit:"g", role:"protein", veg:true},
-  kaese_gouda:       {kcal:356, p:25,  cat:"Kühlware & Milchprodukte", price:1.33, unit:"g", veg:true},
-  salat:             {kcal:15,  p:1.4, cat:"Obst & Gemüse", price:0.65, unit:"g"},
-  salsa:             {kcal:35,  p:1,   cat:"Vorrat", price:1.00, unit:"g"},
-  suesskartoffel:    {kcal:86,  p:1.6, cat:"Obst & Gemüse", price:1.00, unit:"g", role:"carb"},
-  zaatar:            {kcal:280, p:8,   cat:"Vorrat", price:2.50, unit:"flat"},
-  sardinen:          {kcal:208, p:25,  cat:"Vorrat", price:1.50, unit:"g", role:"protein", fish:true, sub:"kidneybohnen"},
-  meerrettich:       {kcal:62,  p:2.9, cat:"Vorrat", price:1.80, unit:"g"},
-  dill:              {kcal:43,  p:3.5, cat:"Obst & Gemüse", price:1.00, unit:"flat"},
-  vollkornbrot:      {kcal:250, p:9,   cat:"Kühlware & Milchprodukte", price:0.50, unit:"g", role:"carb"},
-  lachs:             {kcal:208, p:20,  cat:"Fleisch & Fisch", price:3.85, unit:"g", role:"protein", fish:true, sub:"raeuchertofu"},
-  sesamoel:          {kcal:884, p:0,   cat:"Vorrat", price:1.00, unit:"g"},
-  mandeln:           {kcal:579, p:21,  cat:"Vorrat", price:1.25, unit:"g", nuts:true, sub:"skyr"},
-  weisse_bohnen:     {kcal:120, p:8.5, cat:"Vorrat", price:0.42, unit:"g", role:"protein", veg:true},
-  kreuzkuemmel:      {kcal:375, p:18,  cat:"Vorrat", price:1.50, unit:"flat"},
-  speck:             {kcal:300, p:20,  cat:"Fleisch & Fisch", price:2.00, unit:"g", role:"protein", pork:true, sub:"weisse_bohnen"},
-  rosmarin:          {kcal:131, p:3.3, cat:"Obst & Gemüse", price:1.50, unit:"flat"},
-  apfel:             {kcal:52,  p:0.3, cat:"Obst & Gemüse", price:0.63, unit:"g"},
-  vollkorntoast:     {kcal:250, p:9,   cat:"Kühlware & Milchprodukte", price:0.36, unit:"g", role:"carb"},
-  kraeuter:          {kcal:30,  p:3,   cat:"Obst & Gemüse", price:2.00, unit:"flat"},
-  tomatensauce:      {kcal:35,  p:1.5, cat:"Vorrat", price:0.30, unit:"g"},
-  hackfleisch:       {kcal:200, p:19,  cat:"Fleisch & Fisch", price:1.00, unit:"g", role:"protein", pork:true, sub:"kidneybohnen"},
-  ananas:            {kcal:50,  p:0.5, cat:"Vorrat", price:0.63, unit:"g"},
-  kichererbsen:      {kcal:164, p:8.9, cat:"Vorrat", price:0.38, unit:"g", role:"protein", veg:true},
-  currygewuerz:      {kcal:10,  p:0.5, cat:"Vorrat", price:1.50, unit:"flat"},
-  naturjoghurt:      {kcal:65,  p:4,   cat:"Kühlware & Milchprodukte", price:0.24, unit:"g", veg:true},
-  vollkornreis:      {kcal:350, p:7.5, cat:"Vorrat", price:0.36, unit:"g", role:"carb"},
-  nudeln:            {kcal:350, p:12,  cat:"Vorrat", price:0.30, unit:"g", role:"carb"},
-  vollkornnudeln:    {kcal:340, p:13,  cat:"Vorrat", price:0.35, unit:"g", role:"carb"},
-  pute:              {kcal:110, p:22,  cat:"Fleisch & Fisch", price:1.40, unit:"g", role:"protein", veg:false, sub:"tofu_natur"},
-  pilze:             {kcal:22,  p:3,   cat:"Obst & Gemüse", price:0.60, unit:"g"},
-  kokosmilch:        {kcal:180, p:2,   cat:"Vorrat", price:0.60, unit:"g"},
-  currypaste:        {kcal:60,  p:1,   cat:"Vorrat", price:1.00, unit:"flat"},
-  thunfisch:         {kcal:116, p:26,  cat:"Vorrat", price:1.50, unit:"g", role:"protein", fish:true, sub:"kidneybohnen"},
-  kartoffeln:        {kcal:77,  p:2,   cat:"Obst & Gemüse", price:0.20, unit:"g", role:"carb"},
-  kuerbis:           {kcal:26,  p:1,   cat:"Obst & Gemüse", price:0.30, unit:"g"},
-  polenta:           {kcal:350, p:8,   cat:"Vorrat", price:0.30, unit:"g", role:"carb"},
-  linsen_rot:        {kcal:340, p:24,  cat:"Vorrat", price:0.40, unit:"g", role:"protein", veg:true},
-  pak_choi:          {kcal:13,  p:1.5, cat:"Obst & Gemüse", price:0.60, unit:"g"},
-  mozzarella:        {kcal:280, p:18,  cat:"Kühlware & Milchprodukte", price:1.00, unit:"g", veg:true},
-  pesto:             {kcal:450, p:4,   cat:"Vorrat", price:1.20, unit:"flat"},
-  tofu_natur:        {kcal:145, p:15,  cat:"Kühlware & Milchprodukte", price:0.90, unit:"g", role:"protein", veg:true},
-  kabeljau:          {kcal:82,  p:18,  cat:"Fleisch & Fisch", price:1.80, unit:"g", role:"protein", fish:true, sub:"tofu_natur"},
-  oliven:            {kcal:115, p:1,   cat:"Vorrat", price:0.60, unit:"g"},
-  basilikum:         {kcal:23,  p:3.2, cat:"Obst & Gemüse", price:1.00, unit:"flat"},
-  erdnussbutter:     {kcal:590, p:25,  cat:"Vorrat", price:0.80, unit:"g", nuts:true, sub:"frischkaese"},
+  haferkleie:        {kcal:350, p:17,  cat:"Vorrat", price:0.50, unit:"g", vegan:true},
+  skyr:              {kcal:65,  p:10,  cat:"Kühlware & Milchprodukte", price:0.67, unit:"g", vegan:false, veganSub:"kokosjoghurt"},
+  beeren:            {kcal:45,  p:0.8, cat:"Vorrat", price:0.63, unit:"g", vegan:true},
+  chiasamen:         {kcal:486, p:17,  cat:"Vorrat", price:2.00, unit:"g", vegan:true},
+  bulgur:            {kcal:342, p:12,  cat:"Vorrat", price:0.36, unit:"g", role:"carb", vegan:true},
+  linsen_gekocht:    {kcal:116, p:9,   cat:"Vorrat", price:0.36, unit:"g", role:"protein", veg:true, vegan:true},
+  gurke:             {kcal:12,  p:0.6, cat:"Obst & Gemüse", price:0.20, unit:"g", vegan:true},
+  tomaten:           {kcal:18,  p:0.9, cat:"Obst & Gemüse", price:0.40, unit:"g", vegan:true},
+  feta:              {kcal:264, p:14,  cat:"Kühlware & Milchprodukte", price:1.10, unit:"g", veg:true, vegan:false, veganSub:"tofu_natur"},
+  zwiebel_rot:       {kcal:40,  p:1.1, cat:"Obst & Gemüse", price:0.60, unit:"g", vegan:true},
+  zitrone:           {kcal:2,   p:0.1, cat:"Obst & Gemüse", price:0.50, unit:"stueck", vegan:true},
+  olivenoel:         {kcal:884, p:0,   cat:"Vorrat", price:0.80, unit:"g", vegan:true},
+  huehnchen:         {kcal:165, p:31,  cat:"Fleisch & Fisch", price:1.70, unit:"g", role:"protein", fish:false, pork:false, veg:false, vegan:false, sub:"raeuchertofu"},
+  zucchini:          {kcal:17,  p:1.2, cat:"Obst & Gemüse", price:0.30, unit:"g", vegan:true},
+  paprika:           {kcal:31,  p:1,   cat:"Obst & Gemüse", price:0.47, unit:"g", vegan:true},
+  tzatziki:          {kcal:90,  p:3.5, cat:"Kühlware & Milchprodukte", price:0.80, unit:"g", veg:true, vegan:false, veganSub:"kokosjoghurt"},
+  frischkaese:       {kcal:98,  p:12,  cat:"Kühlware & Milchprodukte", price:0.75, unit:"g", role:"protein", veg:true, vegan:false, veganSub:"tofu_natur"},
+  radieschen:        {kcal:16,  p:0.7, cat:"Obst & Gemüse", price:0.60, unit:"g", vegan:true},
+  ei:                {kcal:155, p:13,  cat:"Kühlware & Milchprodukte", price:0.30, unit:"stueck", role:"protein", veg:true, vegan:false, veganSub:"tofu_natur"},
+  spinat:            {kcal:23,  p:2.9, cat:"Obst & Gemüse", price:1.00, unit:"g", vegan:true},
+  parmesan:          {kcal:400, p:35,  cat:"Kühlware & Milchprodukte", price:2.50, unit:"g", veg:true, vegan:false, veganSub:"hefeflocken"},
+  reis_weiss:        {kcal:350, p:7,   cat:"Vorrat", price:0.36, unit:"g", role:"carb", vegan:true},
+  raeuchertofu:      {kcal:150, p:15,  cat:"Kühlware & Milchprodukte", price:1.10, unit:"g", role:"protein", veg:true, vegan:true},
+  edamame:           {kcal:120, p:11,  cat:"Kühlware & Milchprodukte", price:0.63, unit:"g", role:"protein", veg:true, vegan:true},
+  sesam:             {kcal:570, p:18,  cat:"Vorrat", price:1.20, unit:"g", nuts:false, vegan:true},
+  fruehlzwiebel:     {kcal:30,  p:1.5, cat:"Obst & Gemüse", price:1.00, unit:"g", vegan:true},
+  sojasauce:         {kcal:60,  p:6,   cat:"Vorrat", price:0.72, unit:"g", vegan:true},
+  ingwer:            {kcal:80,  p:2,   cat:"Obst & Gemüse", price:1.00, unit:"g", vegan:true},
+  garnelen:          {kcal:90,  p:20,  cat:"Fleisch & Fisch", price:2.25, unit:"g", role:"protein", fish:true, vegan:false, sub:"raeuchertofu"},
+  brokkoli:          {kcal:34,  p:2.8, cat:"Obst & Gemüse", price:0.45, unit:"g", vegan:true},
+  karotten:          {kcal:41,  p:0.9, cat:"Obst & Gemüse", price:0.20, unit:"g", vegan:true},
+  reis_braun:        {kcal:360, p:7.5, cat:"Vorrat", price:0.36, unit:"g", role:"carb", vegan:true},
+  oel:               {kcal:884, p:0,   cat:"Vorrat", price:0.80, unit:"g", vegan:true},
+  knoblauch:         {kcal:150, p:6.5, cat:"Obst & Gemüse", price:1.20, unit:"g", vegan:true},
+  leinsamen:         {kcal:534, p:18,  cat:"Vorrat", price:0.60, unit:"g", vegan:true},
+  schwarze_bohnen:   {kcal:132, p:8.9, cat:"Vorrat", price:0.42, unit:"g", role:"protein", veg:true, vegan:true},
+  mais:              {kcal:96,  p:3.2, cat:"Vorrat", price:0.64, unit:"g", vegan:true},
+  avocado:           {kcal:160, p:2,   cat:"Obst & Gemüse", price:0.80, unit:"g", vegan:true},
+  koriander:         {kcal:23,  p:2.1, cat:"Obst & Gemüse", price:1.50, unit:"stueck", vegan:true},
+  limette:           {kcal:2,   p:0.1, cat:"Obst & Gemüse", price:0.40, unit:"stueck", vegan:true},
+  huettenkaese:      {kcal:98,  p:11,  cat:"Kühlware & Milchprodukte", price:0.90, unit:"g", role:"protein", veg:true, vegan:false, veganSub:"tofu_natur"},
+  tortilla:          {kcal:275, p:8,   cat:"Vorrat", price:0.30, unit:"stueck", role:"carb", vegan:true},
+  kidneybohnen:      {kcal:127, p:8.7, cat:"Vorrat", price:0.42, unit:"g", role:"protein", veg:true, vegan:true},
+  kaese_gouda:       {kcal:356, p:25,  cat:"Kühlware & Milchprodukte", price:1.33, unit:"g", veg:true, vegan:false, veganSub:"tofu_natur"},
+  salat:             {kcal:15,  p:1.4, cat:"Obst & Gemüse", price:0.65, unit:"g", vegan:true},
+  salsa:             {kcal:35,  p:1,   cat:"Vorrat", price:1.00, unit:"g", vegan:true},
+  suesskartoffel:    {kcal:86,  p:1.6, cat:"Obst & Gemüse", price:1.00, unit:"g", role:"carb", vegan:true},
+  zaatar:            {kcal:280, p:8,   cat:"Vorrat", price:2.50, unit:"flat", vegan:true},
+  sardinen:          {kcal:208, p:25,  cat:"Vorrat", price:1.50, unit:"g", role:"protein", fish:true, vegan:false, sub:"kidneybohnen"},
+  meerrettich:       {kcal:62,  p:2.9, cat:"Vorrat", price:1.80, unit:"g", vegan:true},
+  dill:              {kcal:43,  p:3.5, cat:"Obst & Gemüse", price:1.00, unit:"flat", vegan:true},
+  vollkornbrot:      {kcal:250, p:9,   cat:"Kühlware & Milchprodukte", price:0.50, unit:"g", role:"carb", vegan:true},
+  lachs:             {kcal:208, p:20,  cat:"Fleisch & Fisch", price:3.85, unit:"g", role:"protein", fish:true, vegan:false, sub:"raeuchertofu"},
+  sesamoel:          {kcal:884, p:0,   cat:"Vorrat", price:1.00, unit:"g", vegan:true},
+  mandeln:           {kcal:579, p:21,  cat:"Vorrat", price:1.25, unit:"g", nuts:true, vegan:true, sub:"skyr"},
+  weisse_bohnen:     {kcal:120, p:8.5, cat:"Vorrat", price:0.42, unit:"g", role:"protein", veg:true, vegan:true},
+  kreuzkuemmel:      {kcal:375, p:18,  cat:"Vorrat", price:1.50, unit:"flat", vegan:true},
+  speck:             {kcal:300, p:20,  cat:"Fleisch & Fisch", price:2.00, unit:"g", role:"protein", pork:true, vegan:false, sub:"weisse_bohnen"},
+  rosmarin:          {kcal:131, p:3.3, cat:"Obst & Gemüse", price:1.50, unit:"flat", vegan:true},
+  apfel:             {kcal:52,  p:0.3, cat:"Obst & Gemüse", price:0.63, unit:"g", vegan:true},
+  vollkorntoast:     {kcal:250, p:9,   cat:"Kühlware & Milchprodukte", price:0.36, unit:"g", role:"carb", vegan:true},
+  kraeuter:          {kcal:30,  p:3,   cat:"Obst & Gemüse", price:2.00, unit:"flat", vegan:true},
+  tomatensauce:      {kcal:35,  p:1.5, cat:"Vorrat", price:0.30, unit:"g", vegan:true},
+  hackfleisch:       {kcal:200, p:19,  cat:"Fleisch & Fisch", price:1.00, unit:"g", role:"protein", pork:true, vegan:false, sub:"kidneybohnen"},
+  ananas:            {kcal:50,  p:0.5, cat:"Vorrat", price:0.63, unit:"g", vegan:true},
+  kichererbsen:      {kcal:164, p:8.9, cat:"Vorrat", price:0.38, unit:"g", role:"protein", veg:true, vegan:true},
+  currygewuerz:      {kcal:10,  p:0.5, cat:"Vorrat", price:1.50, unit:"flat", vegan:true},
+  naturjoghurt:      {kcal:65,  p:4,   cat:"Kühlware & Milchprodukte", price:0.24, unit:"g", veg:true, vegan:false, veganSub:"kokosjoghurt"},
+  vollkornreis:      {kcal:350, p:7.5, cat:"Vorrat", price:0.36, unit:"g", role:"carb", vegan:true},
+  nudeln:            {kcal:350, p:12,  cat:"Vorrat", price:0.30, unit:"g", role:"carb", vegan:true},
+  vollkornnudeln:    {kcal:340, p:13,  cat:"Vorrat", price:0.35, unit:"g", role:"carb", vegan:true},
+  pute:              {kcal:110, p:22,  cat:"Fleisch & Fisch", price:1.40, unit:"g", role:"protein", veg:false, vegan:false, sub:"tofu_natur"},
+  pilze:             {kcal:22,  p:3,   cat:"Obst & Gemüse", price:0.60, unit:"g", vegan:true},
+  kokosmilch:        {kcal:180, p:2,   cat:"Vorrat", price:0.60, unit:"g", vegan:true},
+  currypaste:        {kcal:60,  p:1,   cat:"Vorrat", price:1.00, unit:"flat", vegan:true},
+  thunfisch:         {kcal:116, p:26,  cat:"Vorrat", price:1.50, unit:"g", role:"protein", fish:true, vegan:false, sub:"kidneybohnen"},
+  kartoffeln:        {kcal:77,  p:2,   cat:"Obst & Gemüse", price:0.20, unit:"g", role:"carb", vegan:true},
+  kuerbis:           {kcal:26,  p:1,   cat:"Obst & Gemüse", price:0.30, unit:"g", vegan:true},
+  polenta:           {kcal:350, p:8,   cat:"Vorrat", price:0.30, unit:"g", role:"carb", vegan:true},
+  linsen_rot:        {kcal:340, p:24,  cat:"Vorrat", price:0.40, unit:"g", role:"protein", veg:true, vegan:true},
+  pak_choi:          {kcal:13,  p:1.5, cat:"Obst & Gemüse", price:0.60, unit:"g", vegan:true},
+  mozzarella:        {kcal:280, p:18,  cat:"Kühlware & Milchprodukte", price:1.00, unit:"g", veg:true, vegan:false, veganSub:"tofu_natur"},
+  pesto:             {kcal:450, p:4,   cat:"Vorrat", price:1.20, unit:"flat", vegan:false, veganSub:"olivenoel"},
+  tofu_natur:        {kcal:145, p:15,  cat:"Kühlware & Milchprodukte", price:0.90, unit:"g", role:"protein", veg:true, vegan:true},
+  kabeljau:          {kcal:82,  p:18,  cat:"Fleisch & Fisch", price:1.80, unit:"g", role:"protein", fish:true, vegan:false, sub:"tofu_natur"},
+  oliven:            {kcal:115, p:1,   cat:"Vorrat", price:0.60, unit:"g", vegan:true},
+  basilikum:         {kcal:23,  p:3.2, cat:"Obst & Gemüse", price:1.00, unit:"flat", vegan:true},
+  erdnussbutter:     {kcal:590, p:25,  cat:"Vorrat", price:0.80, unit:"g", nuts:true, vegan:true, sub:"tofu_natur"},
+  hafermilch:        {kcal:45,  p:1,   cat:"Vorrat", price:0.30, unit:"g", vegan:true},
+  kokosjoghurt:      {kcal:95,  p:2,   cat:"Kühlware & Milchprodukte", price:1.20, unit:"g", vegan:true},
+  hefeflocken:       {kcal:330, p:50,  cat:"Vorrat", price:3.00, unit:"g", vegan:true},
 };
 
 function ingKcal(key, grams){
@@ -877,7 +880,7 @@ function describeIngredient(key, grams){
     currypaste:"Currypaste", thunfisch:"Thunfisch (Dose)", kartoffeln:"Kartoffeln", kuerbis:"Kürbis",
     polenta:"Polenta (trocken)", linsen_rot:"Rote Linsen (trocken)", pak_choi:"Pak Choi", mozzarella:"Mozzarella",
     pesto:"Pesto", tofu_natur:"Tofu (natur)", kabeljau:"Kabeljau", oliven:"Oliven", basilikum:"Basilikum",
-    erdnussbutter:"Erdnussbutter"
+    erdnussbutter:"Erdnussbutter", hafermilch:"Hafermilch", kokosjoghurt:"Kokosjoghurt", hefeflocken:"Hefeflocken"
   };
   const n = NUTRI[key];
   const label = names[key] || key;
@@ -899,6 +902,8 @@ const BREAKFAST_POOL = [
   {id:"b8", name:"Skyr-Ananas-Bowl", items:[["haferkleie",40],["skyr",150],["ananas",80],["chiasamen",10]]},
   {id:"b9", name:"Bircher-Müsli-Style", items:[["haferkleie",40],["naturjoghurt",120],["apfel",60],["chiasamen",10]]},
   {id:"b10", name:"Frischkäse-Vollkornbrot mit Ei", items:[["ei",1],["vollkornbrot",50],["frischkaese",60],["gurke",50],["tomaten",50]]},
+  {id:"b11", name:"Veganer Chia-Pudding", items:[["chiasamen",20],["hafermilch",200],["beeren",70],["haferkleie",30]]},
+  {id:"b12", name:"Erdnussbutter-Hafermilch-Porridge (vegan)", items:[["haferkleie",40],["hafermilch",200],["erdnussbutter",15],["beeren",40]]},
 ];
 
 const MAIN_POOL = [
@@ -926,6 +931,10 @@ const MAIN_POOL = [
   {id:"m22", name:"Putengeschnetzeltes mit Pilzen", items:[["pute",150],["pilze",150],["vollkornreis",70],["zwiebel_rot",30]]},
   {id:"m23", name:"Caprese-Bowl mit Mozzarella", items:[["mozzarella",100],["tomaten",150],["basilikum",1],["vollkornbrot",40],["olivenoel",5]]},
   {id:"m24", name:"Rote-Linsen-Curry", items:[["linsen_rot",80],["kokosmilch",80],["currypaste",1],["spinat",100],["reis_weiss",60]]},
+  {id:"m25", name:"Veganes Chili sin Carne", items:[["kidneybohnen",130],["schwarze_bohnen",100],["mais",80],["paprika",80],["tomatensauce",100],["zwiebel_rot",30]]},
+  {id:"m26", name:"Süßkartoffel-Kichererbsen-Curry", items:[["suesskartoffel",200],["kichererbsen",150],["kokosmilch",100],["currypaste",1],["spinat",80],["reis_weiss",50]]},
+  {id:"m27", name:"Veganer Buddha Bowl", items:[["edamame",100],["avocado",60],["karotten",80],["reis_braun",70],["sesam",8],["sojasauce",10]]},
+  {id:"m28", name:"Tofu-Bolognese mit Vollkornnudeln", items:[["linsen_rot",90],["vollkornnudeln",70],["tomatensauce",150],["karotten",50],["zwiebel_rot",30],["hefeflocken",15]]},
 ];
 
 const SNACK_POOL = [
@@ -939,6 +948,8 @@ const SNACK_POOL = [
   {id:"s8", name:"Oliven mit Feta", items:[["oliven",50],["feta",40]]},
   {id:"s9", name:"Geröstete Kichererbsen", items:[["kichererbsen",100],["olivenoel",5],["currygewuerz",1]]},
   {id:"s10", name:"Apfel mit Erdnussbutter", items:[["apfel",100],["erdnussbutter",15]]},
+  {id:"s11", name:"Hummus mit Gemüsesticks", items:[["kichererbsen",120],["olivenoel",8],["gurke",100],["karotten",80]]},
+  {id:"s12", name:"Kokosjoghurt mit Beeren", items:[["kokosjoghurt",180],["beeren",80],["leinsamen",10]]},
 ];
 
 const WEEKDAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
@@ -950,9 +961,11 @@ function applyRestrictionsToDish(items, restrictions){
   return items.map(([key, grams]) => {
     const n = NUTRI[key];
     let k = key;
-    if (restrictions.vegetarian && n.veg === false && n.sub) k = n.sub;
+    if (restrictions.vegan && n.vegan === false) {
+      const s = n.veganSub || n.sub;
+      if (s) k = s;
+    } else if (restrictions.vegetarian && n.veg === false && n.sub) k = n.sub;
     else if (restrictions.noFish && n.fish && n.sub) k = n.sub;
-    else if (restrictions.noPork && n.pork && n.sub) k = n.sub;
     else if (restrictions.noNuts && n.nuts && n.sub) k = n.sub;
     return [k, grams];
   });
@@ -1871,8 +1884,8 @@ document.getElementById('nw-generate').onclick = async () => {
   const protein = parseInt(document.getElementById('nw-protein').value, 10) || 113;
   const restrictions = {
     vegetarian: document.getElementById('nw-veg').checked,
+    vegan: document.getElementById('nw-vegan').checked,
     noFish: document.getElementById('nw-nofish').checked,
-    noPork: document.getElementById('nw-nopork').checked,
     noNuts: document.getElementById('nw-nonuts').checked
   };
 
@@ -1916,8 +1929,8 @@ document.getElementById('week-settings-btn').onclick = () => {
   document.getElementById('st-protein').value = meta.proteinGoal || 113;
   const r = meta.restrictions || {};
   document.getElementById('st-veg').checked = !!r.vegetarian;
+  document.getElementById('st-vegan').checked = !!r.vegan;
   document.getElementById('st-nofish').checked = !!r.noFish;
-  document.getElementById('st-nopork').checked = !!r.noPork;
   document.getElementById('st-nonuts').checked = !!r.noNuts;
   document.getElementById('settings-sub').textContent = currentPlanIsGenerated
     ? 'Anpassen und mit denselben Gerichten neu berechnen.'
@@ -1936,8 +1949,8 @@ document.getElementById('st-apply').onclick = async () => {
   const protein = parseInt(document.getElementById('st-protein').value, 10) || 113;
   const restrictions = {
     vegetarian: document.getElementById('st-veg').checked,
+    vegan: document.getElementById('st-vegan').checked,
     noFish: document.getElementById('st-nofish').checked,
-    noPork: document.getElementById('st-nopork').checked,
     noNuts: document.getElementById('st-nonuts').checked
   };
 
