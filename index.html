@@ -1486,7 +1486,7 @@ function buildShoppingFromMeals(meals){
       const roundedGrams = n.unit === "stueck" ? Math.ceil(grams) : Math.round(grams/5)*5;
       const parts = shoppingLabelParts(key, roundedGrams);
       const price = Math.round(ingPrice(key, roundedGrams)*100)/100;
-      byCat[n.cat].push({ n: parts.name, a: parts.amount, p: price });
+      byCat[n.cat].push({ n: parts.name, a: parts.amount, p: price, key: key, grams: roundedGrams });
     });
     const categories = Object.entries(byCat).map(([name, catItems]) => ({ name, items: catItems }));
     return { id: idx+1, label: `Einkauf ${idx+1}`, day: tripDay[idx], categories };
@@ -1816,9 +1816,10 @@ function buildUI(){
         row.dataset.key = key;
         row.dataset.price = item.p;
         row.dataset.einkauf = einkauf.id;
+        const parts = item.key ? shoppingLabelParts(item.key, item.grams) : { name: item.n, amount: item.a };
         row.innerHTML =
           '<div class="box"><svg viewBox="0 0 24 24" fill="none" stroke="#3E6B4F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>' +
-          '<div class="item-text"><span class="item-name">' + item.n + '</span><span class="item-amount">' + item.a + '</span></div>' +
+          '<div class="item-text"><span class="item-name">' + parts.name + '</span><span class="item-amount">' + parts.amount + '</span></div>' +
           '<div class="item-price">' + fmt(item.p) + '</div>';
         row.onclick = () => toggleItem(key, row, einkauf.id);
         panel.appendChild(row);
