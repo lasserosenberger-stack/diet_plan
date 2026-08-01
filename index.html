@@ -199,6 +199,7 @@
     cursor:pointer;
     white-space:nowrap;
   }
+  .dice-btn.leftover-btn{margin-left:6px;}
   .dice-btn:hover{background:var(--check-bg);}
   .cat{
     font-family: Georgia, serif;
@@ -637,6 +638,33 @@
   </div>
 </div>
 
+<div id="leftover-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h2 class="modal-title">Reste verwerten</h2>
+    <p class="modal-sub">Wähle 1–2 Zutaten, die du aufbrauchen möchtest. Es wird ein passendes Gericht aus dem Pool gesucht.</p>
+
+    <label class="modal-label">Mahlzeit</label>
+    <select id="lo-slot">
+      <option value="0">Frühstück</option>
+      <option value="1">Mittagessen</option>
+      <option value="2" selected>Abendessen</option>
+      <option value="3">Snack</option>
+    </select>
+
+    <label class="modal-label">Zutat 1</label>
+    <select id="lo-ing1"></select>
+
+    <label class="modal-label">Zutat 2 (optional)</label>
+    <select id="lo-ing2"></select>
+
+    <div class="modal-row">
+      <button class="sync-btn" id="lo-cancel">Abbrechen</button>
+      <button class="sync-btn nw-primary" id="lo-apply">Gericht suchen</button>
+    </div>
+    <p id="lo-msg" class="login-msg"></p>
+  </div>
+</div>
+
 
 <script>
 // ==== GLOBALER FEHLER-HANDLER (ganz am Anfang, fängt alles ab) ====
@@ -959,31 +987,32 @@ function ingPrice(key, grams){
   return n.price*grams/100; // n.price ist EUR pro 100g
 }
 
+const ING_NAMES = {
+  haferkleie:"Haferkleie mit Keim", skyr:"Skyr", beeren:"Beeren", chiasamen:"Chiasamen", bulgur:"Bulgur (trocken)",
+  linsen_gekocht:"Linsen (gekocht)", gurke:"Gurke", tomaten:"Tomaten", feta:"Feta", zwiebel_rot:"rote Zwiebeln",
+  zitrone:"Zitrone", olivenoel:"Olivenöl", huehnchen:"Hähnchenbrust", zucchini:"Zucchini", paprika:"Paprika",
+  tzatziki:"Tzatziki", frischkaese:"körniger Frischkäse", radieschen:"Radieschen", ei:"Ei(er)", spinat:"Spinat",
+  parmesan:"Parmesan", reis_weiss:"Reis, weiß (trocken)", raeuchertofu:"Räuchertofu", edamame:"Edamame",
+  sesam:"Sesam", fruehlzwiebel:"Frühlingszwiebeln", sojasauce:"Sojasauce", ingwer:"Ingwer", garnelen:"Garnelen",
+  brokkoli:"Brokkoli", karotten:"Karotten", reis_braun:"Reis, braun (trocken)", oel:"Öl", knoblauch:"Knoblauch",
+  leinsamen:"Leinsamen", schwarze_bohnen:"schwarze Bohnen", mais:"Mais", avocado:"Avocado", koriander:"Koriander",
+  limette:"Limette", huettenkaese:"Hüttenkäse", tortilla:"Vollkorn-Tortilla", kidneybohnen:"Kidneybohnen",
+  kaese_gouda:"Käse (Gouda)", salat:"Salat", salsa:"Salsa", suesskartoffel:"Süßkartoffel", zaatar:"Za'atar",
+  sardinen:"Sardinen", meerrettich:"Meerrettich", dill:"Dill", vollkornbrot:"Vollkornbrot", lachs:"Lachs",
+  sesamoel:"Sesamöl", mandeln:"Mandeln", weisse_bohnen:"weiße Bohnen", kreuzkuemmel:"Kreuzkümmel", speck:"Speck/Chorizo",
+  rosmarin:"Rosmarin", apfel:"Apfel", vollkorntoast:"Vollkorntoast", kraeuter:"Kräuter", tomatensauce:"Tomatensauce",
+  hackfleisch:"Hackfleisch", ananas:"Ananas", kichererbsen:"Kichererbsen (gekocht)", currygewuerz:"Currygewürze",
+  naturjoghurt:"Naturjoghurt", vollkornreis:"Vollkornreis (trocken)", nudeln:"Nudeln (trocken)",
+  vollkornnudeln:"Vollkornnudeln (trocken)", pute:"Putenbrust", pilze:"Champignons", kokosmilch:"Kokosmilch",
+  currypaste:"Currypaste", thunfisch:"Thunfisch (Dose)", kartoffeln:"Kartoffeln", kuerbis:"Kürbis",
+  polenta:"Polenta (trocken)", linsen_rot:"Rote Linsen (trocken)", pak_choi:"Pak Choi", mozzarella:"Mozzarella",
+  pesto:"Pesto", tofu_natur:"Tofu (natur)", kabeljau:"Kabeljau", oliven:"Oliven", basilikum:"Basilikum",
+  erdnussbutter:"Erdnussbutter", hafermilch:"Hafermilch", kokosjoghurt:"Kokosjoghurt", hefeflocken:"Hefeflocken"
+};
+
 function describeIngredient(key, grams){
-  const names = {
-    haferkleie:"Haferkleie mit Keim", skyr:"Skyr", beeren:"Beeren", chiasamen:"Chiasamen", bulgur:"Bulgur (trocken)",
-    linsen_gekocht:"Linsen (gekocht)", gurke:"Gurke", tomaten:"Tomaten", feta:"Feta", zwiebel_rot:"rote Zwiebeln",
-    zitrone:"Zitrone", olivenoel:"Olivenöl", huehnchen:"Hähnchenbrust", zucchini:"Zucchini", paprika:"Paprika",
-    tzatziki:"Tzatziki", frischkaese:"körniger Frischkäse", radieschen:"Radieschen", ei:"Ei(er)", spinat:"Spinat",
-    parmesan:"Parmesan", reis_weiss:"Reis, weiß (trocken)", raeuchertofu:"Räuchertofu", edamame:"Edamame",
-    sesam:"Sesam", fruehlzwiebel:"Frühlingszwiebeln", sojasauce:"Sojasauce", ingwer:"Ingwer", garnelen:"Garnelen",
-    brokkoli:"Brokkoli", karotten:"Karotten", reis_braun:"Reis, braun (trocken)", oel:"Öl", knoblauch:"Knoblauch",
-    leinsamen:"Leinsamen", schwarze_bohnen:"schwarze Bohnen", mais:"Mais", avocado:"Avocado", koriander:"Koriander",
-    limette:"Limette", huettenkaese:"Hüttenkäse", tortilla:"Vollkorn-Tortilla", kidneybohnen:"Kidneybohnen",
-    kaese_gouda:"Käse (Gouda)", salat:"Salat", salsa:"Salsa", suesskartoffel:"Süßkartoffel", zaatar:"Za'atar",
-    sardinen:"Sardinen", meerrettich:"Meerrettich", dill:"Dill", vollkornbrot:"Vollkornbrot", lachs:"Lachs",
-    sesamoel:"Sesamöl", mandeln:"Mandeln", weisse_bohnen:"weiße Bohnen", kreuzkuemmel:"Kreuzkümmel", speck:"Speck/Chorizo",
-    rosmarin:"Rosmarin", apfel:"Apfel", vollkorntoast:"Vollkorntoast", kraeuter:"Kräuter", tomatensauce:"Tomatensauce",
-    hackfleisch:"Hackfleisch", ananas:"Ananas", kichererbsen:"Kichererbsen (gekocht)", currygewuerz:"Currygewürze",
-    naturjoghurt:"Naturjoghurt", vollkornreis:"Vollkornreis (trocken)", nudeln:"Nudeln (trocken)",
-    vollkornnudeln:"Vollkornnudeln (trocken)", pute:"Putenbrust", pilze:"Champignons", kokosmilch:"Kokosmilch",
-    currypaste:"Currypaste", thunfisch:"Thunfisch (Dose)", kartoffeln:"Kartoffeln", kuerbis:"Kürbis",
-    polenta:"Polenta (trocken)", linsen_rot:"Rote Linsen (trocken)", pak_choi:"Pak Choi", mozzarella:"Mozzarella",
-    pesto:"Pesto", tofu_natur:"Tofu (natur)", kabeljau:"Kabeljau", oliven:"Oliven", basilikum:"Basilikum",
-    erdnussbutter:"Erdnussbutter", hafermilch:"Hafermilch", kokosjoghurt:"Kokosjoghurt", hefeflocken:"Hefeflocken"
-  };
   const n = NUTRI[key];
-  const label = names[key] || key;
+  const label = ING_NAMES[key] || key;
   if (n.unit === "flat") return label;
   if (n.unit === "stueck") return `${grams} Stück ${label}`;
   return `${grams} g ${label}`;
@@ -992,44 +1021,44 @@ function describeIngredient(key, grams){
 // Gerichte-Pools für Abwechslung. Jedes Gericht hat eine id (für Wiederholungssperre),
 // einen Namen und Basiszutaten. role:"protein"/"carb" Zutaten werden skaliert, Rest bleibt fix.
 const BREAKFAST_POOL = [
-  {id:"b1", name:"Overnight Oats mit Beeren", items:[["haferkleie",40],["skyr",150],["beeren",80],["chiasamen",10]]},
-  {id:"b2", name:"Herzhafter Porridge", items:[["haferkleie",40],["ei",1],["spinat",30],["parmesan",20]]},
-  {id:"b3", name:"Frischkäse-Beeren-Bowl", items:[["frischkaese",160],["beeren",80],["leinsamen",10],["haferkleie",40]]},
-  {id:"b4", name:"Rührei mit Vollkorntoast", items:[["ei",2],["spinat",30],["tomaten",80],["feta",30],["vollkorntoast",60],["haferkleie",40]]},
-  {id:"b5", name:"Skyr-Apfel-Bowl", items:[["haferkleie",40],["skyr",150],["apfel",80]]},
+  {id:"b1", name:"Overnight Oats mit Beeren", items:[["haferkleie",40],["skyr",150],["beeren",80],["chiasamen",10]], nameIngredient:"skyr", altName:"Overnight Oats mit Beeren (pflanzlich)"},
+  {id:"b2", name:"Herzhafter Porridge", items:[["haferkleie",40],["ei",1],["spinat",30],["parmesan",20]], nameIngredient:"ei", altName:"Herzhafter Porridge mit Tofu"},
+  {id:"b3", name:"Frischkäse-Beeren-Bowl", items:[["frischkaese",160],["beeren",80],["leinsamen",10],["haferkleie",40]], nameIngredient:"frischkaese", altName:"Tofu-Beeren-Bowl"},
+  {id:"b4", name:"Rührei mit Vollkorntoast", items:[["ei",2],["spinat",30],["tomaten",80],["feta",30],["vollkorntoast",60],["haferkleie",40]], nameIngredient:"ei", altName:"Tofu-Rührei mit Vollkorntoast"},
+  {id:"b5", name:"Skyr-Apfel-Bowl", items:[["haferkleie",40],["skyr",150],["apfel",80]], nameIngredient:"skyr", altName:"Kokosjoghurt-Apfel-Bowl"},
   {id:"b6", name:"Kokos-Porridge", items:[["haferkleie",40],["kokosmilch",80],["beeren",60],["chiasamen",10]]},
-  {id:"b7", name:"Gemüse-Omelett", items:[["ei",2],["paprika",50],["spinat",30],["feta",20]]},
-  {id:"b8", name:"Skyr-Ananas-Bowl", items:[["haferkleie",40],["skyr",150],["ananas",80],["chiasamen",10]]},
-  {id:"b9", name:"Bircher-Müsli-Style", items:[["haferkleie",40],["naturjoghurt",120],["apfel",60],["chiasamen",10]]},
-  {id:"b10", name:"Frischkäse-Vollkornbrot mit Ei", items:[["ei",1],["vollkornbrot",50],["frischkaese",60],["gurke",50],["tomaten",50]]},
+  {id:"b7", name:"Gemüse-Omelett", items:[["ei",2],["paprika",50],["spinat",30],["feta",20]], nameIngredient:"ei", altName:"Tofu-Gemüse-Pfanne (Frühstück)"},
+  {id:"b8", name:"Skyr-Ananas-Bowl", items:[["haferkleie",40],["skyr",150],["ananas",80],["chiasamen",10]], nameIngredient:"skyr", altName:"Kokosjoghurt-Ananas-Bowl"},
+  {id:"b9", name:"Bircher-Müsli-Style", items:[["haferkleie",40],["naturjoghurt",120],["apfel",60],["chiasamen",10]], nameIngredient:"naturjoghurt", altName:"Bircher-Müsli-Style (pflanzlich)"},
+  {id:"b10", name:"Frischkäse-Vollkornbrot mit Ei", items:[["ei",1],["vollkornbrot",50],["frischkaese",60],["gurke",50],["tomaten",50]], nameIngredient:"ei", altName:"Tofu-Vollkornbrot mit Gurke und Tomate"},
   {id:"b11", name:"Veganer Chia-Pudding", items:[["chiasamen",20],["hafermilch",200],["beeren",70],["haferkleie",30]]},
   {id:"b12", name:"Erdnussbutter-Hafermilch-Porridge (vegan)", items:[["haferkleie",40],["hafermilch",200],["erdnussbutter",15],["beeren",40]]},
 ];
 
 const MAIN_POOL = [
   {id:"m1", name:"Linsen-Bulgur-Salat", items:[["bulgur",60],["linsen_gekocht",150],["gurke",100],["tomaten",100],["feta",50],["zwiebel_rot",30],["zitrone",0.5],["olivenoel",5]]},
-  {id:"m2", name:"Griechisches Ofenhähnchen", items:[["huehnchen",150],["zucchini",100],["paprika",100],["tzatziki",50]]},
+  {id:"m2", name:"Griechisches Ofenhähnchen", items:[["huehnchen",150],["zucchini",100],["paprika",100],["tzatziki",50]], nameIngredient:"huehnchen", altName:"Griechischer Ofen-Tofu"},
   {id:"m3", name:"Asiatische Tofu-Reis-Bowl", items:[["reis_weiss",70],["raeuchertofu",90],["edamame",70],["sesam",8],["fruehlzwiebel",20],["sojasauce",10],["ingwer",5]]},
-  {id:"m4", name:"Garnelen-Gemüse-Pfanne", items:[["garnelen",150],["brokkoli",150],["karotten",100],["reis_braun",60],["oel",8],["knoblauch",5]]},
+  {id:"m4", name:"Garnelen-Gemüse-Pfanne", items:[["garnelen",150],["brokkoli",150],["karotten",100],["reis_braun",60],["oel",8],["knoblauch",5]], nameIngredient:"garnelen", altName:"Tofu-Gemüse-Pfanne"},
   {id:"m5", name:"Mexikanische Bohnen-Bowl", items:[["schwarze_bohnen",150],["mais",80],["avocado",40],["koriander",1],["limette",0.5],["huehnchen",100]]},
-  {id:"m6", name:"Bohnen-Käse-Tortilla-Wrap", items:[["tortilla",1],["kidneybohnen",100],["kaese_gouda",30],["salat",50],["salsa",40]]},
-  {id:"m7", name:"Sardinen-Rillette auf Vollkornbrot", items:[["frischkaese",100],["sardinen",100],["meerrettich",10],["dill",1],["zitrone",0.5],["vollkornbrot",60],["radieschen",50]]},
-  {id:"m8", name:"Lachs-Brokkoli-Bowl", items:[["lachs",130],["reis_braun",40],["brokkoli",150],["edamame",60],["sesamoel",5],["sojasauce",10]]},
-  {id:"m9", name:"Chana Masala mit Vollkornreis", items:[["kichererbsen",150],["tomaten",80],["zwiebel_rot",30],["paprika",50],["currygewuerz",1],["naturjoghurt",150],["vollkornreis",60]]},
-  {id:"m10", name:"Hähnchen mit Linsen und Spinat", items:[["huehnchen",150],["linsen_gekocht",120],["spinat",100]]},
+  {id:"m6", name:"Bohnen-Käse-Tortilla-Wrap", items:[["tortilla",1],["kidneybohnen",100],["kaese_gouda",30],["salat",50],["salsa",40]], nameIngredient:"kaese_gouda", altName:"Bohnen-Tofu-Tortilla-Wrap"},
+  {id:"m7", name:"Sardinen-Rillette auf Vollkornbrot", items:[["frischkaese",100],["sardinen",100],["meerrettich",10],["dill",1],["zitrone",0.5],["vollkornbrot",60],["radieschen",50]], nameIngredient:"sardinen", altName:"Kidneybohnen-Rillette auf Vollkornbrot"},
+  {id:"m8", name:"Lachs-Brokkoli-Bowl", items:[["lachs",130],["reis_braun",40],["brokkoli",150],["edamame",60],["sesamoel",5],["sojasauce",10]], nameIngredient:"lachs", altName:"Tofu-Brokkoli-Bowl"},
+  {id:"m9", name:"Chana Masala mit Vollkornreis", items:[["kichererbsen",150],["tomaten",80],["zwiebel_rot",30],["paprika",50],["currygewuerz",1],["naturjoghurt",150],["vollkornreis",60]], nameIngredient:"naturjoghurt", altName:"Chana Masala mit Vollkornreis (pflanzlich)"},
+  {id:"m10", name:"Hähnchen mit Linsen und Spinat", items:[["huehnchen",150],["linsen_gekocht",120],["spinat",100]], nameIngredient:"huehnchen", altName:"Tofu mit Linsen und Spinat"},
   {id:"m11", name:"Linsen-Gemüse-Eintopf", items:[["linsen_gekocht",150],["karotten",100],["paprika",80],["kreuzkuemmel",1],["ei",2]]},
-  {id:"m12", name:"Weiße-Bohnen-Suppe", items:[["weisse_bohnen",190],["tomaten",100],["rosmarin",1],["speck",45],["vollkornbrot",60]]},
-  {id:"m13", name:"Sardinen-Kidneybohnen-Salat", items:[["kidneybohnen",100],["sardinen",80],["frischkaese",70],["zitrone",0.5],["zwiebel_rot",30],["kraeuter",1]]},
-  {id:"m14", name:"Gefüllte Paprika mit Hackfleisch", items:[["paprika",250],["bulgur",45],["hackfleisch",90],["tomatensauce",100]]},
-  {id:"m15", name:"Chili con Carne", items:[["hackfleisch",100],["kidneybohnen",150],["mais",80],["paprika",80],["tomatensauce",100],["zwiebel_rot",30]]},
-  {id:"m16", name:"Bolognese mit Vollkornnudeln", items:[["hackfleisch",100],["vollkornnudeln",70],["tomatensauce",150],["karotten",50],["zwiebel_rot",30],["parmesan",20]]},
+  {id:"m12", name:"Weiße-Bohnen-Suppe", items:[["weisse_bohnen",190],["tomaten",100],["rosmarin",1],["speck",45],["vollkornbrot",60]], nameIngredient:"speck", altName:"Weiße-Bohnen-Suppe (vegetarisch)"},
+  {id:"m13", name:"Sardinen-Kidneybohnen-Salat", items:[["kidneybohnen",100],["sardinen",80],["frischkaese",70],["zitrone",0.5],["zwiebel_rot",30],["kraeuter",1]], nameIngredient:"sardinen", altName:"Doppel-Bohnen-Salat mit Frischkäse"},
+  {id:"m14", name:"Gefüllte Paprika mit Hackfleisch", items:[["paprika",250],["bulgur",45],["hackfleisch",90],["tomatensauce",100]], nameIngredient:"hackfleisch", altName:"Gefüllte Paprika mit Kidneybohnen"},
+  {id:"m15", name:"Chili con Carne", items:[["hackfleisch",100],["kidneybohnen",150],["mais",80],["paprika",80],["tomatensauce",100],["zwiebel_rot",30]], nameIngredient:"hackfleisch", altName:"Chili sin Carne"},
+  {id:"m16", name:"Bolognese mit Vollkornnudeln", items:[["hackfleisch",100],["vollkornnudeln",70],["tomatensauce",150],["karotten",50],["zwiebel_rot",30],["parmesan",20]], nameIngredient:"hackfleisch", altName:"Kidneybohnen-Bolognese mit Vollkornnudeln"},
   {id:"m17", name:"Kürbis-Kokos-Curry", items:[["kuerbis",200],["kokosmilch",100],["currypaste",1],["kichererbsen",100],["reis_weiss",60]]},
-  {id:"m18", name:"Thunfisch-Nudelsalat", items:[["thunfisch",100],["vollkornnudeln",70],["mais",50],["gurke",80],["tomaten",80],["olivenoel",5]]},
-  {id:"m19", name:"Ofenkartoffeln mit Quark", items:[["kartoffeln",250],["frischkaese",150],["gurke",50],["fruehlzwiebel",10]]},
+  {id:"m18", name:"Thunfisch-Nudelsalat", items:[["thunfisch",100],["vollkornnudeln",70],["mais",50],["gurke",80],["tomaten",80],["olivenoel",5]], nameIngredient:"thunfisch", altName:"Kidneybohnen-Nudelsalat"},
+  {id:"m19", name:"Ofenkartoffeln mit Quark", items:[["kartoffeln",250],["frischkaese",150],["gurke",50],["fruehlzwiebel",10]], nameIngredient:"frischkaese", altName:"Ofenkartoffeln mit Tofu-Creme"},
   {id:"m20", name:"Gebratener Tofu mit Pak Choi", items:[["tofu_natur",150],["pak_choi",150],["reis_weiss",70],["sojasauce",10],["ingwer",5],["knoblauch",5]]},
-  {id:"m21", name:"Kabeljau mit Ofengemüse", items:[["kabeljau",150],["kartoffeln",150],["brokkoli",100],["olivenoel",8]]},
-  {id:"m22", name:"Putengeschnetzeltes mit Pilzen", items:[["pute",150],["pilze",150],["vollkornreis",70],["zwiebel_rot",30]]},
-  {id:"m23", name:"Caprese-Bowl mit Mozzarella", items:[["mozzarella",100],["tomaten",150],["basilikum",1],["vollkornbrot",40],["olivenoel",5]]},
+  {id:"m21", name:"Kabeljau mit Ofengemüse", items:[["kabeljau",150],["kartoffeln",150],["brokkoli",100],["olivenoel",8]], nameIngredient:"kabeljau", altName:"Tofu mit Ofengemüse"},
+  {id:"m22", name:"Putengeschnetzeltes mit Pilzen", items:[["pute",150],["pilze",150],["vollkornreis",70],["zwiebel_rot",30]], nameIngredient:"pute", altName:"Tofu-Geschnetzeltes mit Pilzen"},
+  {id:"m23", name:"Caprese-Bowl mit Mozzarella", items:[["mozzarella",100],["tomaten",150],["basilikum",1],["vollkornbrot",40],["olivenoel",5]], nameIngredient:"mozzarella", altName:"Caprese-Bowl mit Tofu"},
   {id:"m24", name:"Rote-Linsen-Curry", items:[["linsen_rot",80],["kokosmilch",80],["currypaste",1],["spinat",100],["reis_weiss",60]]},
   {id:"m25", name:"Veganes Chili sin Carne", items:[["kidneybohnen",130],["schwarze_bohnen",100],["mais",80],["paprika",80],["tomatensauce",100],["zwiebel_rot",30]]},
   {id:"m26", name:"Süßkartoffel-Kichererbsen-Curry", items:[["suesskartoffel",200],["kichererbsen",150],["kokosmilch",100],["currypaste",1],["spinat",80],["reis_weiss",50]]},
@@ -1038,14 +1067,14 @@ const MAIN_POOL = [
 ];
 
 const SNACK_POOL = [
-  {id:"s1", name:"Frischkäse mit Radieschen", items:[["frischkaese",200],["radieschen",50]]},
-  {id:"s2", name:"Naturjoghurt mit Leinsamen", items:[["naturjoghurt",200],["leinsamen",10]]},
-  {id:"s3", name:"Hüttenkäse mit Ofengemüse", items:[["huettenkaese",160],["suesskartoffel",70],["paprika",80]]},
+  {id:"s1", name:"Frischkäse mit Radieschen", items:[["frischkaese",200],["radieschen",50]], nameIngredient:"frischkaese", altName:"Tofu-Creme mit Radieschen"},
+  {id:"s2", name:"Naturjoghurt mit Leinsamen", items:[["naturjoghurt",200],["leinsamen",10]], nameIngredient:"naturjoghurt", altName:"Kokosjoghurt mit Leinsamen"},
+  {id:"s3", name:"Hüttenkäse mit Ofengemüse", items:[["huettenkaese",160],["suesskartoffel",70],["paprika",80]], nameIngredient:"huettenkaese", altName:"Tofu mit Ofengemüse"},
   {id:"s4", name:"Mandeln", items:[["mandeln",30]]},
-  {id:"s5", name:"Skyr mit Beeren", items:[["skyr",190],["beeren",80]]},
-  {id:"s6", name:"Frischkäse mit Gurke und Kräutern", items:[["frischkaese",160],["gurke",80],["kraeuter",1]]},
-  {id:"s7", name:"Hüttenkäse mit Ananas", items:[["huettenkaese",150],["ananas",80]]},
-  {id:"s8", name:"Oliven mit Feta", items:[["oliven",50],["feta",40]]},
+  {id:"s5", name:"Skyr mit Beeren", items:[["skyr",190],["beeren",80]], nameIngredient:"skyr", altName:"Pflanzlicher Joghurt mit Beeren"},
+  {id:"s6", name:"Frischkäse mit Gurke und Kräutern", items:[["frischkaese",160],["gurke",80],["kraeuter",1]], nameIngredient:"frischkaese", altName:"Tofu-Creme mit Gurke und Kräutern"},
+  {id:"s7", name:"Hüttenkäse mit Ananas", items:[["huettenkaese",150],["ananas",80]], nameIngredient:"huettenkaese", altName:"Tofu mit Ananas"},
+  {id:"s8", name:"Oliven mit Feta", items:[["oliven",50],["feta",40]], nameIngredient:"feta", altName:"Oliven mit Tofu"},
   {id:"s9", name:"Geröstete Kichererbsen", items:[["kichererbsen",100],["olivenoel",5],["currygewuerz",1]]},
   {id:"s10", name:"Apfel mit Erdnussbutter", items:[["apfel",100],["erdnussbutter",15]]},
   {id:"s11", name:"Hummus mit Gemüsesticks", items:[["kichererbsen",120],["olivenoel",8],["gurke",100],["karotten",80]]},
@@ -1157,21 +1186,28 @@ const BREAKFAST_BY_ID = Object.fromEntries(BREAKFAST_POOL.map(d => [d.id, d]));
 const MAIN_BY_ID = Object.fromEntries(MAIN_POOL.map(d => [d.id, d]));
 const SNACK_BY_ID = Object.fromEntries(SNACK_POOL.map(d => [d.id, d]));
 
+function resolveDishName(dish, substitutedItems){
+  if (!dish.nameIngredient || !dish.altName) return dish.name;
+  const stillHasOriginal = substitutedItems.some(([k]) => k === dish.nameIngredient);
+  return stillHasOriginal ? dish.name : dish.altName;
+}
+
 function buildDayFromDishes(weekday, dishesBySlot, kcalTarget, proteinTarget, restrictions){
   const labels = ["Frühstück", "Mittagessen", "Abendessen", "Snack"];
   const rows = dishesBySlot.map((dish, slot) => {
     const items = applyRestrictionsToDish(dish.items, restrictions);
+    const displayName = resolveDishName(dish, items);
     const kcalSlotTarget = Math.round(kcalTarget * MEAL_KCAL_SHARE[slot]);
     const pSlotTarget = Math.round(proteinTarget * MEAL_P_SHARE[slot]);
     const scaled = scaleDish(items, kcalSlotTarget, pSlotTarget);
-    return { label: labels[slot], desc: `${dish.name} – ${scaled.desc}`, kcal: scaled.kcal, p: scaled.p, price: scaled.price, _items: scaled._items, _dishId: dish.id };
+    return { label: labels[slot], desc: `${displayName} – ${scaled.desc}`, kcal: scaled.kcal, p: scaled.p, price: scaled.price, _items: scaled._items, _dishId: dish.id, _dishName: displayName };
   });
   const totalKcal = rows.reduce((s,r) => s + r.kcal, 0);
   const totalP = rows.reduce((s,r) => s + r.p, 0);
   const totalPrice = Math.round(rows.reduce((s,r) => s + r.price, 0)*100)/100;
   return {
     day: weekday,
-    theme: dishesBySlot[1].name,
+    theme: rows[1]._dishName,
     total: { kcal: totalKcal, p: totalP, price: totalPrice },
     sport: { label: "Optionaler Sporttag-Snack (kcal-/proteinreich, nach Bedarf ergänzen)", kcal: 300, p: 20 },
     rows
@@ -1529,11 +1565,15 @@ function buildMealsPanel(){
     let sportHtml = '<div class="day-sport"><div></div><div></div><div></div><div>+ Sporttag: ' + day.sport.label + '</div><div class="meal-kcal">+' + Math.round(day.sport.kcal) + '</div><div class="meal-p">+' + Math.round(day.sport.p) + ' g</div><div class="meal-price"></div></div>';
     let noteHtml = day.note ? '<div class="meal-note">' + day.note + '</div>' : '';
     let diceHtml = currentPlanIsGenerated ? '<button class="dice-btn" data-day-idx="' + dayIdx + '" title="Neue Gerichte nur für diesen Tag würfeln">&#127922; Neu würfeln</button>' : '';
-    card.innerHTML = '<h2><span class="day-icon">' + style.icon + '</span>' + day.day + ' <span class="theme">– ' + day.theme + '</span>' + diceHtml + '</h2>' + headerHtml + rowsHtml + totalHtml + sportHtml + noteHtml;
+    let leftoverHtml = currentPlanIsGenerated ? '<button class="dice-btn leftover-btn" data-day-idx="' + dayIdx + '" title="Ein Gericht mit bestimmten Resten finden">&#127811; Reste</button>' : '';
+    card.innerHTML = '<h2><span class="day-icon">' + style.icon + '</span>' + day.day + ' <span class="theme">– ' + day.theme + '</span>' + diceHtml + leftoverHtml + '</h2>' + headerHtml + rowsHtml + totalHtml + sportHtml + noteHtml;
     panel.appendChild(card);
   });
-  panel.querySelectorAll('.dice-btn').forEach(btn => {
+  panel.querySelectorAll('.dice-btn:not(.leftover-btn)').forEach(btn => {
     btn.onclick = () => randomizeDayInUI(parseInt(btn.dataset.dayIdx, 10));
+  });
+  panel.querySelectorAll('.leftover-btn').forEach(btn => {
+    btn.onclick = () => openLeftoverModal(parseInt(btn.dataset.dayIdx, 10));
   });
   panel.querySelectorAll('.meal-row').forEach(row => {
     row.querySelector('.meal-check').onclick = () => toggleEaten(
@@ -2353,6 +2393,97 @@ async function randomizeDayInUI(dayIdx){
     alert('Würfeln fehlgeschlagen: ' + e.message);
   }
 }
+
+// ==== RESTE VERWERTEN ====
+let leftoverDayIdx = null;
+
+function populateLeftoverSelects(){
+  const options = Object.keys(NUTRI)
+    .filter(k => NUTRI[k].unit !== "flat") // Gewürze/Fixzutaten sind selten "Reste"
+    .map(k => ({ key: k, name: ING_NAMES[k] || k }))
+    .sort((a,b) => a.name.localeCompare(b.name, 'de'));
+
+  const sel1 = document.getElementById('lo-ing1');
+  const sel2 = document.getElementById('lo-ing2');
+  sel1.innerHTML = options.map(o => `<option value="${o.key}">${o.name}</option>`).join('');
+  sel2.innerHTML = '<option value="">– keine –</option>' + options.map(o => `<option value="${o.key}">${o.name}</option>`).join('');
+}
+
+function openLeftoverModal(dayIdx){
+  leftoverDayIdx = dayIdx;
+  populateLeftoverSelects();
+  document.getElementById('lo-msg').textContent = '';
+  document.getElementById('leftover-modal').classList.add('show');
+}
+
+document.getElementById('lo-cancel').onclick = () => {
+  document.getElementById('leftover-modal').classList.remove('show');
+};
+
+function findDishForLeftovers(selectedKeys, pool, excludeId){
+  const scored = pool
+    .filter(d => d.id !== excludeId)
+    .map(d => ({ dish: d, score: d.items.filter(([k]) => selectedKeys.includes(k)).length }))
+    .filter(s => s.score > 0);
+  if (scored.length === 0) return null;
+  const maxScore = Math.max(...scored.map(s => s.score));
+  const best = scored.filter(s => s.score === maxScore);
+  return best[Math.floor(Math.random() * best.length)].dish;
+}
+
+document.getElementById('lo-apply').onclick = async () => {
+  const msg = document.getElementById('lo-msg');
+  const slot = parseInt(document.getElementById('lo-slot').value, 10);
+  const ing1 = document.getElementById('lo-ing1').value;
+  const ing2 = document.getElementById('lo-ing2').value;
+  const selectedKeys = [ing1, ing2].filter(Boolean);
+
+  if (leftoverDayIdx === null) return;
+  const currentDay = MEALS[leftoverDayIdx];
+  const currentDishId = currentDay.rows[slot]._dishId;
+
+  const pools = [BREAKFAST_POOL, MAIN_POOL, MAIN_POOL, SNACK_POOL];
+  const byId = [BREAKFAST_BY_ID, MAIN_BY_ID, MAIN_BY_ID, SNACK_BY_ID];
+
+  const matched = findDishForLeftovers(selectedKeys, pools[slot], currentDishId);
+  if (!matched) {
+    msg.style.color = '#B5563E';
+    msg.textContent = 'Kein passendes Gericht für diese Zutat(en) gefunden – versuch es mit einer anderen Auswahl oder Mahlzeit.';
+    return;
+  }
+
+  msg.style.color = 'var(--ink-muted)';
+  msg.textContent = 'Gericht gefunden: ' + matched.name + ' – wird übernommen…';
+
+  try {
+    const meta = weeksMeta[currentWeekId] || {};
+    const kcal = meta.kcalGoal || 1537;
+    const protein = meta.proteinGoal || 113;
+    const restrictions = meta.restrictions || {};
+
+    const dishesBySlot = currentDay.rows.map((row, s) => {
+      if (s === slot) return matched;
+      return byId[s][row._dishId] || (s === 0 ? BREAKFAST_POOL[0] : s === 3 ? SNACK_POOL[0] : MAIN_POOL[0]);
+    });
+
+    const newDay = buildDayFromDishes(currentDay.day, dishesBySlot, kcal, protein, restrictions);
+    const meals = MEALS.slice();
+    meals[leftoverDayIdx] = newDay;
+    const data = buildShoppingFromMeals(meals);
+
+    await savePlanForWeek(currentWeekId, { meals, data });
+    MEALS = meals;
+    DATA = data;
+    delete eaten[leftoverDayIdx + '|' + slot];
+    saveEatenState();
+    buildUI();
+    await loadState();
+    document.getElementById('leftover-modal').classList.remove('show');
+  } catch(e) {
+    msg.style.color = '#B5563E';
+    msg.textContent = 'Fehler: ' + e.message;
+  }
+};
 </script>
 
 </body>
