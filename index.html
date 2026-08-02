@@ -1274,7 +1274,7 @@ function capitalizeFirst(s){
 }
 function ingName(key){
   if (currentLang === 'en') return capitalizeFirst(ING_NAMES_EN[key] || ING_NAMES[key] || key);
-  return ING_NAMES[key] || key;
+  return capitalizeFirst(ING_NAMES[key] || key);
 }
 
 function describeIngredient(key, grams){
