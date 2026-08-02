@@ -907,7 +907,7 @@ function setLanguage(lang){
   if (sel) sel.value = currentLang;
   applyI18n();
   if (document.getElementById('app-content') && document.getElementById('app-content').style.display !== 'none' && currentWeekId) {
-    applyWeekPlan(currentWeekId);
+    applyWeekPlan(currentWeekId).then(() => loadEatenState());
   }
 }
 
@@ -2267,6 +2267,9 @@ async function loadEatenState(){
     const key = row.dataset.dayIdx + '|' + row.dataset.slot;
     row.classList.toggle('eaten', !!eaten[key]);
   });
+  document.querySelectorAll('.day-card').forEach(card => {
+    updateDayCompleteBadge(parseInt(card.dataset.dayIdx, 10));
+  });
 }
 
 async function toggleEaten(dayIdx, slot, row){
@@ -2280,6 +2283,19 @@ async function toggleEaten(dayIdx, slot, row){
   }
   saveEatenState();
 
+  const allEaten = updateDayCompleteBadge(dayIdx);
+
+  if (allEaten) {
+    const dayName = MEALS[dayIdx] ? MEALS[dayIdx].day : 'Tag';
+    await awardDayXP(dayIdx, dayName);
+  } else {
+    await revokeDayXP(dayIdx);
+  }
+}
+
+// Prüft, ob alle 4 Mahlzeiten eines Tages abgehakt sind, und aktualisiert Markierung + Abzeichen
+// entsprechend live nach - inkl. korrekter, aktueller Sprache. Gibt zurück, ob der Tag komplett ist.
+function updateDayCompleteBadge(dayIdx){
   const dayRows = document.querySelectorAll('.meal-row[data-day-idx="' + dayIdx + '"]');
   const allEaten = dayRows.length > 0 && [...dayRows].every(r => r.classList.contains('eaten'));
 
@@ -2288,24 +2304,20 @@ async function toggleEaten(dayIdx, slot, row){
     card.classList.toggle('day-complete', allEaten);
     const h2 = card.querySelector('.day-header-toggle');
     let badge = h2.querySelector('.complete-day-badge');
-    if (allEaten && !badge) {
-      badge = document.createElement('span');
-      badge.className = 'complete-day-badge';
-      badge.innerHTML = '&#10003; ' + t('dayCompleteBadge');
-      const themeEl = h2.querySelector('.theme');
-      if (themeEl) themeEl.insertAdjacentElement('beforebegin', badge);
-      else h2.appendChild(badge);
-    } else if (!allEaten && badge) {
+    if (allEaten) {
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'complete-day-badge';
+        const themeEl = h2.querySelector('.theme');
+        if (themeEl) themeEl.insertAdjacentElement('beforebegin', badge);
+        else h2.appendChild(badge);
+      }
+      badge.innerHTML = '&#10003; ' + t('dayCompleteBadge'); // immer aktuelle Sprache setzen, auch bei bereits vorhandenem Abzeichen
+    } else if (badge) {
       badge.remove();
     }
   }
-
-  if (allEaten) {
-    const dayName = MEALS[dayIdx] ? MEALS[dayIdx].day : 'Tag';
-    await awardDayXP(dayIdx, dayName);
-  } else {
-    await revokeDayXP(dayIdx);
-  }
+  return allEaten;
 }
 
 // ==== XP & LEVEL-SYSTEM ====
@@ -2622,6 +2634,7 @@ function isValidPlan(plan){
 }
 
 async function applyWeekPlan(weekId){
+  eaten = {}; // sofort zurücksetzen, damit nie kurzzeitig veraltete Haken einer anderen Woche angezeigt werden
   let plan = null;
   try {
     plan = await loadPlanForWeek(weekId);
