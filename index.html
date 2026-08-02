@@ -1177,8 +1177,12 @@ const ING_NAMES_EN = {
   erdnussbutter:"peanut butter", hafermilch:"oat milk", kokosjoghurt:"coconut yogurt", hefeflocken:"nutritional yeast"
 };
 
+function capitalizeFirst(s){
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
 function ingName(key){
-  return currentLang === 'en' ? (ING_NAMES_EN[key] || ING_NAMES[key] || key) : (ING_NAMES[key] || key);
+  if (currentLang === 'en') return capitalizeFirst(ING_NAMES_EN[key] || ING_NAMES[key] || key);
+  return ING_NAMES[key] || key;
 }
 
 function describeIngredient(key, grams){
