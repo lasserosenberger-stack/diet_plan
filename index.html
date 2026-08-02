@@ -1511,15 +1511,32 @@ function buildShoppingFromMeals(meals){
   const tripOf = { "Montag":0, "Dienstag":0, "Mittwoch":1, "Donnerstag":1, "Freitag":2, "Samstag":2, "Sonntag":2 };
   const tripDay = ["Montag", "Mittwoch", "Freitag"];
   const trips = [{}, {}, {}];
+  const weeklyPantryTotals = {};   // Vorrat: über die ganze Woche summiert, nur einmal einplanen
+  const firstTripNeeding = {};     // Vorrat: erste Fahrt, die die Zutat braucht
 
   meals.forEach(day => {
     const tripIdx = tripOf[day.day];
     day.rows.forEach(row => {
       (row._items || []).forEach(([key, grams]) => {
-        if (!trips[tripIdx][key]) trips[tripIdx][key] = 0;
-        trips[tripIdx][key] += grams;
+        const n = NUTRI[key];
+        if (n.cat === "Vorrat") {
+          // Lange haltbare Vorrats-Artikel (Reis, Nudeln, Gewürze, Haferkleie ...) kauft man
+          // einmal für die ganze Woche, nicht bei jeder Einkaufsfahrt neu.
+          weeklyPantryTotals[key] = (weeklyPantryTotals[key] || 0) + grams;
+          if (firstTripNeeding[key] === undefined) firstTripNeeding[key] = tripIdx;
+        } else {
+          // Frische/kühlpflichtige Kategorien: pro Fahrt frisch einkaufen.
+          if (!trips[tripIdx][key]) trips[tripIdx][key] = 0;
+          trips[tripIdx][key] += grams;
+        }
       });
     });
+  });
+
+  Object.entries(weeklyPantryTotals).forEach(([key, grams]) => {
+    const tripIdx = firstTripNeeding[key];
+    if (!trips[tripIdx][key]) trips[tripIdx][key] = 0;
+    trips[tripIdx][key] += grams;
   });
 
   const data = trips.map((items, idx) => {
