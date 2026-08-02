@@ -713,6 +713,7 @@
       <label><input type="checkbox" id="nw-vegan"> <span data-i18n="vegan">Vegan</span></label>
       <label><input type="checkbox" id="nw-nofish"> <span data-i18n="noFish">Kein Fisch</span></label>
       <label><input type="checkbox" id="nw-nonuts"> <span data-i18n="noNuts">Keine Nüsse</span></label>
+      <label><input type="checkbox" id="nw-digestive"> <span data-i18n="digestive">Verdauungsschonend</span></label>
     </div>
 
     <div class="modal-row">
@@ -740,6 +741,7 @@
       <label><input type="checkbox" id="st-vegan"> <span data-i18n="vegan">Vegan</span></label>
       <label><input type="checkbox" id="st-nofish"> <span data-i18n="noFish">Kein Fisch</span></label>
       <label><input type="checkbox" id="st-nonuts"> <span data-i18n="noNuts">Keine Nüsse</span></label>
+      <label><input type="checkbox" id="st-digestive"> <span data-i18n="digestive">Verdauungsschonend</span></label>
     </div>
 
     <div class="modal-row">
@@ -815,7 +817,7 @@ const I18N = {
     newWeekTitle: "Neue Woche planen", newWeekSub: "Ein neuer Ernährungs- und Einkaufsplan wird für diese Woche generiert.",
     dailyKcalGoal: "Tagesziel Kalorien", dailyProteinGoal: "Tagesziel Eiweiß (g)",
     dietaryRestrictions: "Ernährungseinschränkungen",
-    vegetarian: "Vegetarisch", vegan: "Vegan", noFish: "Kein Fisch", noNuts: "Keine Nüsse",
+    vegetarian: "Vegetarisch", vegan: "Vegan", noFish: "Kein Fisch", noNuts: "Keine Nüsse", digestive: "Verdauungsschonend",
     cancel: "Abbrechen", generatePlan: "Plan erstellen", weekGoalsTitle: "Ziele dieser Woche", apply: "Übernehmen",
     leftoverTitle: "Reste verwerten",
     leftoverSub: "Wähle 1–2 Zutaten, die du aufbrauchen möchtest. Es wird ein passendes Gericht aus dem Pool gesucht.",
@@ -858,7 +860,7 @@ const I18N = {
     newWeekTitle: "Plan a new week", newWeekSub: "A new meal and shopping plan will be generated for this week.",
     dailyKcalGoal: "Daily calorie goal", dailyProteinGoal: "Daily protein goal (g)",
     dietaryRestrictions: "Dietary restrictions",
-    vegetarian: "Vegetarian", vegan: "Vegan", noFish: "No fish", noNuts: "No nuts",
+    vegetarian: "Vegetarian", vegan: "Vegan", noFish: "No fish", noNuts: "No nuts", digestive: "Gut on digestion",
     cancel: "Cancel", generatePlan: "Generate plan", weekGoalsTitle: "This week's goals", apply: "Apply",
     leftoverTitle: "Use up leftovers",
     leftoverSub: "Pick 1–2 ingredients you want to use up. A matching dish from the pool will be found.",
@@ -1307,6 +1309,12 @@ const BREAKFAST_POOL = [
   {id:"b10", name:"Frischkäse-Vollkornbrot mit Ei", nameEn:"Cottage Cheese Whole-Grain Bread with Egg", items:[["ei",1],["vollkornbrot",50],["frischkaese",60],["gurke",50],["tomaten",50]], nameIngredient:"ei", altName:"Tofu-Vollkornbrot mit Gurke und Tomate", altNameEn:"Tofu Whole-Grain Bread with Cucumber and Tomato"},
   {id:"b11", name:"Veganer Chia-Pudding", nameEn:"Vegan Chia Pudding", items:[["chiasamen",20],["hafermilch",200],["beeren",70],["haferkleie",30]]},
   {id:"b12", name:"Erdnussbutter-Hafermilch-Porridge (vegan)", nameEn:"Peanut Butter Oat Milk Porridge (vegan)", items:[["haferkleie",40],["hafermilch",200],["erdnussbutter",15],["beeren",40]]},
+  {id:"b13", name:"Skyr mit Mandeln und Beeren", nameEn:"Skyr with Almonds and Berries", items:[["skyr",150],["mandeln",20],["beeren",60]], nameIngredient:"skyr", altName:"Kokosjoghurt mit Mandeln und Beeren", altNameEn:"Coconut Yogurt with Almonds and Berries"},
+  {id:"b14", name:"Vollkorntoast mit Avocado und Ei", nameEn:"Whole-Grain Toast with Avocado and Egg", items:[["vollkorntoast",60],["avocado",60],["ei",1],["tomaten",50]], nameIngredient:"ei", altName:"Vollkorntoast mit Avocado und Tofu", altNameEn:"Whole-Grain Toast with Avocado and Tofu"},
+  {id:"b15", name:"Quark mit Apfel und Leinsamen", nameEn:"Curd Cheese with Apple and Flaxseed", items:[["frischkaese",150],["apfel",80],["leinsamen",10]], nameIngredient:"frischkaese", altName:"Tofu-Creme mit Apfel und Leinsamen", altNameEn:"Tofu Cream with Apple and Flaxseed"},
+  {id:"b16", name:"Joghurt-Bowl mit Mandeln", nameEn:"Yogurt Bowl with Almonds", items:[["naturjoghurt",150],["mandeln",20],["beeren",60]], nameIngredient:"naturjoghurt", altName:"Kokosjoghurt-Bowl mit Mandeln", altNameEn:"Coconut Yogurt Bowl with Almonds"},
+  {id:"b17", name:"Gemüse-Rührei mit Vollkornbrot", nameEn:"Veggie Scrambled Eggs with Whole-Grain Bread", items:[["ei",2],["paprika",50],["spinat",30],["vollkornbrot",40]], nameIngredient:"ei", altName:"Gemüse-Tofu-Pfanne mit Vollkornbrot", altNameEn:"Veggie Tofu Scramble with Whole-Grain Bread"},
+  {id:"b18", name:"Hüttenkäse mit Apfel und Leinsamen", nameEn:"Cottage Cheese with Apple and Flaxseed", items:[["huettenkaese",150],["apfel",80],["leinsamen",10]], nameIngredient:"huettenkaese", altName:"Tofu mit Apfel und Leinsamen", altNameEn:"Tofu with Apple and Flaxseed"},
 ];
 
 const MAIN_POOL = [
@@ -1360,6 +1368,7 @@ const SNACK_POOL = [
 const DISH_CATEGORY = {
   b1:"bowl", b2:"porridge", b3:"bowl", b4:"ei", b5:"bowl", b6:"porridge", b7:"ei",
   b8:"bowl", b9:"bowl", b10:"brot", b11:"bowl", b12:"porridge",
+  b13:"bowl", b14:"brot", b15:"bowl", b16:"bowl", b17:"ei", b18:"bowl",
   m1:"salat", m2:"ofen", m3:"bowl", m4:"pfanne", m5:"bowl", m6:"wrap", m7:"brot",
   m8:"bowl", m9:"curry", m10:"pfanne", m11:"suppe", m12:"suppe", m13:"salat",
   m14:"ofen", m15:"suppe", m16:"pasta", m17:"curry", m18:"salat", m19:"ofen",
@@ -1512,6 +1521,14 @@ function buildDayFromDishes(weekday, dishesBySlot, kcalTarget, proteinTarget, re
 
 // Wählt ein Gericht gewichtet zufällig aus dem Pool: Gerichte, die bereits in dieser Einkaufsfahrt
 // verwendete Zutaten enthalten, werden bevorzugt (aber nicht erzwungen) - reduziert angebrochene Packungen.
+// Filtert den Frühstücks-Pool je nach "Verdauungsschonend"-Einstellung: entweder NUR Gerichte mit
+// Haferkleie (viele Ballaststoffe) oder NUR Gerichte ohne, je nach Wunsch.
+function filterBreakfastPool(restrictions){
+  const wantOatBran = !!(restrictions && restrictions.digestive);
+  const filtered = BREAKFAST_POOL.filter(d => d.items.some(([k]) => k === 'haferkleie') === wantOatBran);
+  return filtered.length > 0 ? filtered : BREAKFAST_POOL; // Sicherheitsnetz, falls der Pool leer würde
+}
+
 function weightedPickDish(pool, excludeIds, ingredientsInTrip){
   let candidates = pool.filter(d => !excludeIds.has(d.id));
   if (candidates.length === 0) candidates = pool; // Pool erschöpft - Wiederholung zulassen statt abzustürzen
@@ -1541,7 +1558,7 @@ function generatePlan(kcalTarget, proteinTarget, restrictions, recentDishIds){
     const tripIdx = tripOfDayIdx[i];
     const ingSet = tripIngredients[tripIdx];
 
-    const bfDish = weightedPickDish(BREAKFAST_POOL, usedBreakfast, ingSet);
+    const bfDish = weightedPickDish(filterBreakfastPool(restrictions), usedBreakfast, ingSet);
     usedBreakfast.add(bfDish.id);
     const lunchDish = weightedPickDish(MAIN_POOL, usedMain, ingSet);
     usedMain.add(lunchDish.id);
@@ -1586,7 +1603,7 @@ function randomizeSingleDay(existingMeals, dayIndex, kcalTarget, proteinTarget, 
   const currentDay = existingMeals[dayIndex];
   const currentIds = new Set(currentDay.rows.map(r => r._dishId));
 
-  const bfPool = prioritizeUnused(BREAKFAST_POOL, new Set([...usedElsewhere.breakfast, ...currentIds]));
+  const bfPool = prioritizeUnused(filterBreakfastPool(restrictions), new Set([...usedElsewhere.breakfast, ...currentIds]));
   const mainPool = prioritizeUnused(MAIN_POOL, new Set([...usedElsewhere.main, ...currentIds]));
   const snackPool = prioritizeUnused(SNACK_POOL, new Set([...usedElsewhere.snack, ...currentIds]));
 
@@ -1602,7 +1619,7 @@ function randomizeSingleDay(existingMeals, dayIndex, kcalTarget, proteinTarget, 
 // Würfelt nur EINE einzelne Mahlzeit (einen Slot) neu, die anderen 3 Gerichte des Tages bleiben.
 // Der ganze Tag wird danach über buildDayFromDishes neu skaliert, damit Kcal/Eiweiß wieder stimmen.
 function randomizeSingleMeal(existingMeals, dayIndex, slot, kcalTarget, proteinTarget, restrictions){
-  const pools = [BREAKFAST_POOL, MAIN_POOL, MAIN_POOL, SNACK_POOL];
+  const pools = [filterBreakfastPool(restrictions), MAIN_POOL, MAIN_POOL, SNACK_POOL];
   const byId = [BREAKFAST_BY_ID, MAIN_BY_ID, MAIN_BY_ID, SNACK_BY_ID];
   const currentDay = existingMeals[dayIndex];
 
@@ -2810,7 +2827,8 @@ document.getElementById('nw-generate').onclick = async () => {
     vegetarian: document.getElementById('nw-veg').checked,
     vegan: document.getElementById('nw-vegan').checked,
     noFish: document.getElementById('nw-nofish').checked,
-    noNuts: document.getElementById('nw-nonuts').checked
+    noNuts: document.getElementById('nw-nonuts').checked,
+    digestive: document.getElementById('nw-digestive').checked
   };
 
   msg.style.color = 'var(--ink-muted)';
@@ -2856,6 +2874,7 @@ document.getElementById('week-settings-btn').onclick = () => {
   document.getElementById('st-vegan').checked = !!r.vegan;
   document.getElementById('st-nofish').checked = !!r.noFish;
   document.getElementById('st-nonuts').checked = !!r.noNuts;
+  document.getElementById('st-digestive').checked = !!r.digestive;
   document.getElementById('settings-sub').textContent = currentPlanIsGenerated
     ? t('settingsSubGenerated')
     : t('settingsSubDefault');
@@ -2875,7 +2894,8 @@ document.getElementById('st-apply').onclick = async () => {
     vegetarian: document.getElementById('st-veg').checked,
     vegan: document.getElementById('st-vegan').checked,
     noFish: document.getElementById('st-nofish').checked,
-    noNuts: document.getElementById('st-nonuts').checked
+    noNuts: document.getElementById('st-nonuts').checked,
+    digestive: document.getElementById('st-digestive').checked
   };
 
   msg.style.color = 'var(--ink-muted)';
@@ -2992,8 +3012,10 @@ document.getElementById('lo-apply').onclick = async () => {
   if (leftoverDayIdx === null) return;
   const currentDay = MEALS[leftoverDayIdx];
   const currentDishId = currentDay.rows[slot]._dishId;
+  const lo_meta = weeksMeta[currentWeekId] || {};
+  const lo_restrictions = lo_meta.restrictions || {};
 
-  const pools = [BREAKFAST_POOL, MAIN_POOL, MAIN_POOL, SNACK_POOL];
+  const pools = [filterBreakfastPool(lo_restrictions), MAIN_POOL, MAIN_POOL, SNACK_POOL];
   const byId = [BREAKFAST_BY_ID, MAIN_BY_ID, MAIN_BY_ID, SNACK_BY_ID];
 
   const matched = findDishForLeftovers(selectedKeys, pools[slot], currentDishId);
