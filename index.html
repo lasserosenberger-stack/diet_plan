@@ -173,8 +173,9 @@
     padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;
   }
   .day-card{
+    --border-left-w: 4px;
     border:1px solid var(--paper-line);
-    border-left:4px solid var(--day-accent, var(--paper-line));
+    border-left:var(--border-left-w) solid var(--day-accent, var(--paper-line));
     border-radius:10px;
     padding:14px 16px 10px;
     margin-bottom:14px;
@@ -185,9 +186,9 @@
   .day-card.collapsed{padding-bottom:14px;}
   .day-card.collapsed .day-body{display:none;}
   .day-card.today{
-    border-left-width:6px;
+    --border-left-w: 6px;
     border-color:var(--mustard);
-    box-shadow:0 0 0 2px rgba(217,164,65,0.35), 0 4px 14px rgba(15,20,17,0.35);
+    box-shadow:0 4px 14px rgba(15,20,17,0.35);
   }
   .today-badge{
     background:var(--mustard);
@@ -202,22 +203,22 @@
   }
   .day-complete-banner{
     display:none;
+    position:absolute;
+    top:-1px; left:calc(-1 * var(--border-left-w)); right:-1px;
     background:#3E6B4F;
     color:#EFE9D8;
     font-size:12px;
     font-weight:700;
     text-align:center;
     padding:6px 10px;
-    margin:-14px -16px 10px;
     border-radius:9px 9px 0 0;
     letter-spacing:0.3px;
+    z-index:1;
   }
   .day-card.day-complete .day-complete-banner{display:block;}
   .day-card.day-complete{
     border-left-color:#3E6B4F;
-  }
-  .day-card.day-complete.today{
-    box-shadow:0 0 0 2px rgba(62,107,79,0.4), 0 4px 14px rgba(15,20,17,0.35);
+    padding-top:40px;
   }
   .day-header-toggle{cursor:pointer; user-select:none;}
   .collapse-chevron{
