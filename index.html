@@ -287,6 +287,27 @@
     line-height:1;
   }
   .meal-dice-btn:hover{opacity:1;}
+
+  @media (max-width: 520px){
+    .meal-header{display:none;}
+    .meal-row, .day-total, .day-sport{
+      grid-template-columns: 22px 16px 1fr 1fr 1fr 1fr !important;
+      grid-template-areas:
+        "c1 c2 c3 c3 c3 c8"
+        "c1 c2 c4 c4 c4 c4"
+        "c1 c2 c5 c6 c7 c7" !important;
+      row-gap: 3px;
+      padding:10px 0;
+    }
+    .meal-row > *:nth-child(1), .day-total > *:nth-child(1), .day-sport > *:nth-child(1){grid-area:c1;}
+    .meal-row > *:nth-child(2), .day-total > *:nth-child(2), .day-sport > *:nth-child(2){grid-area:c2;}
+    .meal-row > *:nth-child(3), .day-total > *:nth-child(3), .day-sport > *:nth-child(3){grid-area:c3; font-size:13px;}
+    .meal-row > *:nth-child(4), .day-total > *:nth-child(4), .day-sport > *:nth-child(4){grid-area:c4; font-size:13px;}
+    .meal-row > *:nth-child(5), .day-total > *:nth-child(5), .day-sport > *:nth-child(5){grid-area:c5; text-align:left;}
+    .meal-row > *:nth-child(6), .day-total > *:nth-child(6), .day-sport > *:nth-child(6){grid-area:c6; text-align:left;}
+    .meal-row > *:nth-child(7), .day-total > *:nth-child(7), .day-sport > *:nth-child(7){grid-area:c7; text-align:right;}
+    .meal-row > *:nth-child(8), .day-total > *:nth-child(8), .day-sport > *:nth-child(8){grid-area:c8; justify-self:end;}
+  }
   .meal-header{
     display:grid;
     grid-template-columns: 24px 18px 62px 1fr 44px 40px 48px 20px;
@@ -1871,7 +1892,7 @@ function buildMealsPanel(){
       const mealDiceHtml = currentPlanIsGenerated ? '<button class="meal-dice-btn" data-day-idx="' + dayIdx + '" data-slot="' + slot + '" title="' + t('rerollMealTitle') + '">&#127922;</button>' : '';
       return '<div class="meal-row' + (isEaten ? ' eaten' : '') + '" data-day-idx="' + dayIdx + '" data-slot="' + slot + '">' +
         '<div class="meal-check"><svg viewBox="0 0 24 24" fill="none" stroke="#3E6B4F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>' +
-        '<div class="meal-cat-icon">' + iconSvg + '</div><div class="meal-label">' + mealLabelDisplay(r.label) + '</div><div class="meal-desc">' + descText + '</div><div class="meal-kcal">' + fmtKcal(r.kcal, r.approx) + '</div><div class="meal-p">' + fmtP(r.p, r.approx) + '</div><div class="meal-price">' + fmtPrice(r.price, r.approx) + '</div><div>' + mealDiceHtml + '</div></div>';
+        '<div class="meal-cat-icon">' + iconSvg + '</div><div class="meal-label">' + mealLabelDisplay(r.label) + '</div><div class="meal-desc">' + descText + '</div><div class="meal-kcal">' + fmtKcal(r.kcal, r.approx) + '</div><div class="meal-p">' + fmtP(r.p, r.approx) + '</div><div class="meal-price">' + fmtPrice(r.price, r.approx) + '</div><div class="meal-dice-cell">' + mealDiceHtml + '</div></div>';
     }).join('');
     let totalHtml = '<div class="day-total"><div></div><div></div><div></div><div>' + t('dayTotal') + '</div><div class="meal-kcal">' + fmtKcal(day.total.kcal, day.total.approx) + '</div><div class="meal-p">' + fmtP(day.total.p, day.total.approx) + '</div><div class="meal-price">' + fmtPrice(day.total.price, day.total.approx) + '</div><div></div></div>';
     const sportText = (day.sport.label === "Optionaler Sporttag-Snack (kcal-/proteinreich, nach Bedarf ergänzen)") ? t('sportDayExtra') : day.sport.label;
