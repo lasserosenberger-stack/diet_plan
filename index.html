@@ -1037,7 +1037,7 @@ const NUTRI = {
   tzatziki:          {kcal:90,  p:3.5, cat:"Kühlware & Milchprodukte", price:0.80, unit:"g", pack:200, veg:true, vegan:false, veganSub:"kokosjoghurt"},
   frischkaese:       {kcal:98,  p:12,  cat:"Kühlware & Milchprodukte", price:0.75, unit:"g", pack:200, role:"protein", veg:true, vegan:false, veganSub:"tofu_natur"},
   radieschen:        {kcal:16,  p:0.7, cat:"Obst & Gemüse", price:0.60, unit:"g", pack:150, vegan:true},
-  ei:                {kcal:155, p:13,  cat:"Kühlware & Milchprodukte", price:0.30, unit:"stueck", pack:10, role:"protein", veg:true, vegan:false, veganSub:"tofu_natur"},
+  ei:                {kcal:155, p:13,  cat:"Kühlware & Milchprodukte", price:0.30, unit:"stueck", pack:6, wholeOnly:true, buyOnce:true, role:"protein", veg:true, vegan:false, veganSub:"tofu_natur"},
   spinat:            {kcal:23,  p:2.9, cat:"Obst & Gemüse", price:1.00, unit:"g", pack:150, vegan:true},
   parmesan:          {kcal:400, p:35,  cat:"Kühlware & Milchprodukte", price:2.50, unit:"g", pack:100, veg:true, vegan:false, veganSub:"hefeflocken"},
   reis_weiss:        {kcal:350, p:7,   cat:"Vorrat", price:0.36, unit:"g", pack:1000, role:"carb", vegan:true},
@@ -1322,7 +1322,14 @@ function scaleDish(items, kcalTarget, proteinTarget){
   let cScale = kcalCarb > 0 ? (kcalTarget - kcalFixed - kcalProtein*pScale) / kcalCarb : 1;
   cScale = Math.max(0.3, Math.min(2.2, cScale || 1));
 
-  const roundGrams = (key, g) => NUTRI[key].unit === "stueck" ? Math.round(g*2)/2 : Math.round(g/5)*5;
+  const roundGrams = (key, g) => {
+    const n = NUTRI[key];
+    if (n.unit === "stueck") {
+      if (n.wholeOnly) return Math.max(1, Math.round(g));
+      return Math.round(g*2)/2;
+    }
+    return Math.round(g/5)*5;
+  };
 
   const scaledItems = items.map(([key, grams]) => {
     const n = NUTRI[key];
@@ -1519,7 +1526,7 @@ function buildShoppingFromMeals(meals){
     day.rows.forEach(row => {
       (row._items || []).forEach(([key, grams]) => {
         const n = NUTRI[key];
-        if (n.cat === "Vorrat") {
+        if (n.cat === "Vorrat" || n.buyOnce) {
           // Lange haltbare Vorrats-Artikel (Reis, Nudeln, Gewürze, Haferkleie ...) kauft man
           // einmal für die ganze Woche, nicht bei jeder Einkaufsfahrt neu.
           weeklyPantryTotals[key] = (weeklyPantryTotals[key] || 0) + grams;
