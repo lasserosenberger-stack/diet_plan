@@ -2741,8 +2741,8 @@ function updateDebugLine(ids){
   if (!el) {
     el = document.createElement('div');
     el.id = 'debug-line';
-    el.style.cssText = 'text-align:center;font-size:10px;color:#6A7A6C;margin-top:2px;font-family:monospace;';
-    document.querySelector('.week-picker').insertAdjacentElement('afterend', el);
+    el.style.cssText = 'text-align:center;font-size:10px;color:#6A7A6C;margin-top:24px;padding-top:10px;border-top:1px solid #2C3B31;font-family:monospace;';
+    document.getElementById('app-content').appendChild(el);
   }
   const tokenAgeMs = authState.expiresAt - Date.now();
   const tokenStatus = tokenAgeMs > 0 ? `gültig noch ${Math.round(tokenAgeMs/1000)}s` : `ABGELAUFEN seit ${Math.round(-tokenAgeMs/1000)}s`;
