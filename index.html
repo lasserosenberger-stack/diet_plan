@@ -1900,7 +1900,23 @@ function renderMealDesc(row, slot){
   return { name: displayName, full: `${displayName} – ${descParts.join(', ')}` };
 }
 
-let dayCollapsed = null; // wird bei jedem Aufbau initialisiert (Standard: vergangene Tage eingeklappt)
+let dayCollapsed = null; // wird bei jedem Wochenwechsel neu geladen (aus localStorage oder Standard)
+
+function collapseStorageKey(){
+  return 'dayCollapsed_' + currentWeekId;
+}
+function loadDayCollapsed(){
+  try {
+    const raw = localStorage.getItem(collapseStorageKey());
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return null;
+}
+function saveDayCollapsed(){
+  try {
+    localStorage.setItem(collapseStorageKey(), JSON.stringify(dayCollapsed));
+  } catch(e) {}
+}
 
 function getTodayInfo(){
   const meta = weeksMeta[currentWeekId];
@@ -1924,9 +1940,15 @@ function buildMealsPanel(){
   const { isCurrentWeek, todayIdx } = getTodayInfo();
 
   if (!dayCollapsed) {
-    // Erststart für diese Woche: vergangene Tage einklappen, heute & Zukunft offen lassen
-    dayCollapsed = {};
-    MEALS.forEach((day, i) => { dayCollapsed[i] = isCurrentWeek && i < todayIdx; });
+    const stored = loadDayCollapsed();
+    if (stored) {
+      dayCollapsed = stored;
+    } else {
+      // Kein gespeicherter Zustand: vergangene Tage einklappen, heute & Zukunft offen lassen
+      dayCollapsed = {};
+      MEALS.forEach((day, i) => { dayCollapsed[i] = isCurrentWeek && i < todayIdx; });
+      saveDayCollapsed();
+    }
   }
 
   MEALS.forEach((day, dayIdx) => {
@@ -1970,6 +1992,7 @@ function buildMealsPanel(){
       const idx = card.dataset.dayIdx;
       dayCollapsed[idx] = !dayCollapsed[idx];
       card.classList.toggle('collapsed', dayCollapsed[idx]);
+      saveDayCollapsed();
     };
   });
   panel.querySelectorAll('.dice-btn:not(.leftover-btn)').forEach(btn => {
