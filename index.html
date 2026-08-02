@@ -243,7 +243,7 @@
   @keyframes fadein{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
   .meal-row{
     display:grid;
-    grid-template-columns: 24px 18px 62px 1fr 44px 40px 48px;
+    grid-template-columns: 24px 18px 62px 1fr 44px 40px 48px 20px;
     gap:8px;
     padding:6px 0;
     border-bottom:1px dashed var(--paper-line);
@@ -277,9 +277,19 @@
   .meal-desc{line-height:1.4;}
   .meal-kcal, .meal-p{text-align:right;font-weight:600;padding-top:2px;white-space:nowrap;}
   .meal-price{text-align:right;font-weight:600;padding-top:2px;white-space:nowrap;color:var(--mustard-dark);}
+  .meal-dice-btn{
+    background:transparent;
+    border:none;
+    font-size:13px;
+    cursor:pointer;
+    opacity:0.55;
+    padding:0;
+    line-height:1;
+  }
+  .meal-dice-btn:hover{opacity:1;}
   .meal-header{
     display:grid;
-    grid-template-columns: 24px 18px 62px 1fr 44px 40px 48px;
+    grid-template-columns: 24px 18px 62px 1fr 44px 40px 48px 20px;
     gap:8px;
     font-size:10.5px;
     text-transform:uppercase;
@@ -294,7 +304,7 @@
   .meal-note{font-size:11.5px;color:var(--ink-muted);margin-top:6px;}
   .day-total{
     display:grid;
-    grid-template-columns: 24px 18px 62px 1fr 44px 40px 48px;
+    grid-template-columns: 24px 18px 62px 1fr 44px 40px 48px 20px;
     gap:8px;
     padding-top:8px;
     margin-top:2px;
@@ -304,7 +314,7 @@
   }
   .day-sport{
     display:grid;
-    grid-template-columns: 24px 18px 62px 1fr 44px 40px 48px;
+    grid-template-columns: 24px 18px 62px 1fr 44px 40px 48px 20px;
     gap:8px;
     padding-top:6px;
     font-size:12px;
@@ -733,7 +743,7 @@ const I18N = {
     mealCol: "Mahlzeit", kcalCol: "Kcal", proteinCol: "Eiweiß", priceCol: "Preis",
     dayTotal: "Tagessumme", sportDayExtra: "Optionaler Sporttag-Snack (kcal-/proteinreich, nach Bedarf ergänzen)",
     sportDayLabel: "Sporttag",
-    rollDice: "Neu würfeln", rollDiceTitle: "Neue Gerichte nur für diesen Tag würfeln",
+    rollDice: "Neu würfeln", rollDiceTitle: "Neue Gerichte nur für diesen Tag würfeln", rerollMealTitle: "Nur diese Mahlzeit neu würfeln",
     leftoverBtn: "Reste", leftoverBtnTitle: "Ein Gericht mit bestimmten Resten finden",
     inCart: "Im Wagen", stillLeft: "Noch übrig", purchaseTotal: "gesamt",
     resetPurchase: "Haken für Einkauf {n} zurücksetzen",
@@ -773,7 +783,7 @@ const I18N = {
     mealCol: "Meal", kcalCol: "Kcal", proteinCol: "Protein", priceCol: "Price",
     dayTotal: "Daily total", sportDayExtra: "Optional workout-day snack (calorie-/protein-rich, add as needed)",
     sportDayLabel: "Workout day",
-    rollDice: "Reroll", rollDiceTitle: "Roll new dishes for this day only",
+    rollDice: "Reroll", rollDiceTitle: "Roll new dishes for this day only", rerollMealTitle: "Reroll just this meal",
     leftoverBtn: "Leftovers", leftoverBtnTitle: "Find a dish using specific leftovers",
     inCart: "In cart", stillLeft: "Still left", purchaseTotal: "total",
     resetPurchase: "Reset checkmarks for shop {n}",
@@ -1500,6 +1510,30 @@ function randomizeSingleDay(existingMeals, dayIndex, kcalTarget, proteinTarget, 
   return { meals, data };
 }
 
+// Würfelt nur EINE einzelne Mahlzeit (einen Slot) neu, die anderen 3 Gerichte des Tages bleiben.
+// Der ganze Tag wird danach über buildDayFromDishes neu skaliert, damit Kcal/Eiweiß wieder stimmen.
+function randomizeSingleMeal(existingMeals, dayIndex, slot, kcalTarget, proteinTarget, restrictions){
+  const pools = [BREAKFAST_POOL, MAIN_POOL, MAIN_POOL, SNACK_POOL];
+  const byId = [BREAKFAST_BY_ID, MAIN_BY_ID, MAIN_BY_ID, SNACK_BY_ID];
+  const currentDay = existingMeals[dayIndex];
+
+  // Innerhalb desselben Tages keine Dopplung: alle an diesem Tag bereits verwendeten Gerichte ausschließen
+  const usedInDay = new Set(currentDay.rows.map(r => r._dishId));
+  const freshPool = prioritizeUnused(pools[slot], usedInDay);
+  const newDish = freshPool[0];
+
+  const dishesBySlot = currentDay.rows.map((row, s) => {
+    if (s === slot) return newDish;
+    return byId[s][row._dishId] || (s===0 ? BREAKFAST_POOL[0] : s===3 ? SNACK_POOL[0] : MAIN_POOL[0]);
+  });
+
+  const newDay = buildDayFromDishes(currentDay.day, dishesBySlot, kcalTarget, proteinTarget, restrictions);
+  const meals = existingMeals.slice();
+  meals[dayIndex] = newDay;
+  const data = buildShoppingFromMeals(meals);
+  return { meals, data };
+}
+
 function collectRecentDishIds(previousPlan){
   const ids = { breakfast: new Set(), main: new Set(), snack: new Set() };
   if (!previousPlan || !previousPlan.meals) return ids;
@@ -1824,7 +1858,7 @@ function buildMealsPanel(){
     card.className = 'day-card';
     const style = DAY_STYLE[day.day] || {color:'#B9AE8F', icon:''};
     card.style.setProperty('--day-accent', style.color);
-    let headerHtml = '<div class="meal-header"><span></span><span></span><span>' + t('mealCol') + '</span><span></span><span>' + t('kcalCol') + '</span><span>' + t('proteinCol') + '</span><span>' + t('priceCol') + '</span></div>';
+    let headerHtml = '<div class="meal-header"><span></span><span></span><span>' + t('mealCol') + '</span><span></span><span>' + t('kcalCol') + '</span><span>' + t('proteinCol') + '</span><span>' + t('priceCol') + '</span><span></span></div>';
     let dayThemeShown = day.theme;
     let rowsHtml = day.rows.map((r, slot) => {
       const key = dayIdx + '|' + slot;
@@ -1834,13 +1868,14 @@ function buildMealsPanel(){
       const rendered = renderMealDesc(r, slot);
       const descText = typeof rendered === 'string' ? rendered : rendered.full;
       if (slot === 1 && typeof rendered !== 'string') dayThemeShown = rendered.name;
+      const mealDiceHtml = currentPlanIsGenerated ? '<button class="meal-dice-btn" data-day-idx="' + dayIdx + '" data-slot="' + slot + '" title="' + t('rerollMealTitle') + '">&#127922;</button>' : '';
       return '<div class="meal-row' + (isEaten ? ' eaten' : '') + '" data-day-idx="' + dayIdx + '" data-slot="' + slot + '">' +
         '<div class="meal-check"><svg viewBox="0 0 24 24" fill="none" stroke="#3E6B4F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>' +
-        '<div class="meal-cat-icon">' + iconSvg + '</div><div class="meal-label">' + mealLabelDisplay(r.label) + '</div><div class="meal-desc">' + descText + '</div><div class="meal-kcal">' + fmtKcal(r.kcal, r.approx) + '</div><div class="meal-p">' + fmtP(r.p, r.approx) + '</div><div class="meal-price">' + fmtPrice(r.price, r.approx) + '</div></div>';
+        '<div class="meal-cat-icon">' + iconSvg + '</div><div class="meal-label">' + mealLabelDisplay(r.label) + '</div><div class="meal-desc">' + descText + '</div><div class="meal-kcal">' + fmtKcal(r.kcal, r.approx) + '</div><div class="meal-p">' + fmtP(r.p, r.approx) + '</div><div class="meal-price">' + fmtPrice(r.price, r.approx) + '</div><div>' + mealDiceHtml + '</div></div>';
     }).join('');
-    let totalHtml = '<div class="day-total"><div></div><div></div><div></div><div>' + t('dayTotal') + '</div><div class="meal-kcal">' + fmtKcal(day.total.kcal, day.total.approx) + '</div><div class="meal-p">' + fmtP(day.total.p, day.total.approx) + '</div><div class="meal-price">' + fmtPrice(day.total.price, day.total.approx) + '</div></div>';
+    let totalHtml = '<div class="day-total"><div></div><div></div><div></div><div>' + t('dayTotal') + '</div><div class="meal-kcal">' + fmtKcal(day.total.kcal, day.total.approx) + '</div><div class="meal-p">' + fmtP(day.total.p, day.total.approx) + '</div><div class="meal-price">' + fmtPrice(day.total.price, day.total.approx) + '</div><div></div></div>';
     const sportText = (day.sport.label === "Optionaler Sporttag-Snack (kcal-/proteinreich, nach Bedarf ergänzen)") ? t('sportDayExtra') : day.sport.label;
-    let sportHtml = '<div class="day-sport"><div></div><div></div><div></div><div>+ ' + t('sportDayLabel') + ': ' + sportText + '</div><div class="meal-kcal">+' + Math.round(day.sport.kcal) + '</div><div class="meal-p">+' + Math.round(day.sport.p) + ' g</div><div class="meal-price"></div></div>';
+    let sportHtml = '<div class="day-sport"><div></div><div></div><div></div><div>+ ' + t('sportDayLabel') + ': ' + sportText + '</div><div class="meal-kcal">+' + Math.round(day.sport.kcal) + '</div><div class="meal-p">+' + Math.round(day.sport.p) + ' g</div><div class="meal-price"></div><div></div></div>';
     let noteHtml = day.note ? '<div class="meal-note">' + day.note + '</div>' : '';
     let diceHtml = currentPlanIsGenerated ? '<button class="dice-btn" data-day-idx="' + dayIdx + '" title="' + t('rollDiceTitle') + '">&#127922; ' + t('rollDice') + '</button>' : '';
     let leftoverHtml = currentPlanIsGenerated ? '<button class="dice-btn leftover-btn" data-day-idx="' + dayIdx + '" title="' + t('leftoverBtnTitle') + '">&#127811; ' + t('leftoverBtn') + '</button>' : '';
@@ -1852,6 +1887,12 @@ function buildMealsPanel(){
   });
   panel.querySelectorAll('.leftover-btn').forEach(btn => {
     btn.onclick = () => openLeftoverModal(parseInt(btn.dataset.dayIdx, 10));
+  });
+  panel.querySelectorAll('.meal-dice-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      randomizeSingleMealInUI(parseInt(btn.dataset.dayIdx, 10), parseInt(btn.dataset.slot, 10));
+    };
   });
   panel.querySelectorAll('.meal-row').forEach(row => {
     row.querySelector('.meal-check').onclick = () => toggleEaten(
@@ -2689,6 +2730,27 @@ async function randomizeDayInUI(dayIdx){
     MEALS = plan.meals;
     DATA = plan.data;
     for (let slot = 0; slot < 4; slot++) delete eaten[dayIdx + '|' + slot];
+    saveEatenState();
+    buildUI();
+    await loadState();
+  } catch(e) {
+    alert(t('diceFailed') + ': ' + e.message);
+  }
+}
+
+async function randomizeSingleMealInUI(dayIdx, slot){
+  if (!currentPlanIsGenerated) return;
+  const meta = weeksMeta[currentWeekId] || {};
+  const kcal = meta.kcalGoal || 1537;
+  const protein = meta.proteinGoal || 113;
+  const restrictions = meta.restrictions || {};
+
+  try {
+    const plan = randomizeSingleMeal(MEALS, dayIdx, slot, kcal, protein, restrictions);
+    await savePlanForWeek(currentWeekId, plan);
+    MEALS = plan.meals;
+    DATA = plan.data;
+    delete eaten[dayIdx + '|' + slot];
     saveEatenState();
     buildUI();
     await loadState();
