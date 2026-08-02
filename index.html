@@ -1306,44 +1306,51 @@ function applyRestrictionsToDish(items, restrictions){
   });
 }
 
-function scaleDish(items, kcalTarget, proteinTarget){
+function roundIngredientAmount(key, g){
+  const n = NUTRI[key];
+  if (n.unit === "stueck") {
+    if (n.wholeOnly) return Math.max(1, Math.round(g));
+    return Math.round(g*2)/2;
+  }
+  return Math.round(g/5)*5;
+}
+
+// Skaliert ALLE Zutaten eines ganzen Tages (über alle 4 Mahlzeiten hinweg) gemeinsam auf das Tagesziel.
+// Wichtig: EIN Skalierungsfaktor für den ganzen Tag statt vier unabhängige pro Mahlzeit - vier separate
+// Rundungen/Kappungen können sich sonst zu einer großen Gesamtabweichung aufsummieren.
+function scaleDayItems(itemsPerMeal, kcalTarget, proteinTarget){
   let kcalFixed=0, pFixed=0, kcalProtein=0, pProtein=0, kcalCarb=0, pCarb=0;
-  items.forEach(([key, grams]) => {
+  itemsPerMeal.forEach(items => items.forEach(([key, grams]) => {
     const n = NUTRI[key];
     const k = ingKcal(key, grams), p = ingProtein(key, grams);
     if (n.role === "protein") { kcalProtein += k; pProtein += p; }
     else if (n.role === "carb") { kcalCarb += k; pCarb += p; }
     else { kcalFixed += k; pFixed += p; }
-  });
+  }));
 
   let pScale = pProtein > 0 ? (proteinTarget - pFixed - pCarb) / pProtein : 1;
-  pScale = Math.max(0.5, Math.min(1.8, pScale || 1));
+  pScale = Math.max(0.4, Math.min(2.5, pScale || 1));
 
   let cScale = kcalCarb > 0 ? (kcalTarget - kcalFixed - kcalProtein*pScale) / kcalCarb : 1;
-  cScale = Math.max(0.3, Math.min(2.2, cScale || 1));
+  cScale = Math.max(0.2, Math.min(3, cScale || 1));
 
-  const roundGrams = (key, g) => {
-    const n = NUTRI[key];
-    if (n.unit === "stueck") {
-      if (n.wholeOnly) return Math.max(1, Math.round(g));
-      return Math.round(g*2)/2;
-    }
-    return Math.round(g/5)*5;
-  };
+  // Nachkorrektur: Wenn mehrere Gerichte dieselbe (kalorienreiche) Proteinquelle teilen, kann pScale
+  // die Tageskalorien trotz minimaler cScale weit über das Ziel treiben. Kalorienziel hat dann Vorrang
+  // vor perfektem Eiweißwert - lieber etwas weniger Eiweiß als deutlich zu viele Kalorien.
+  const actualKcal = kcalFixed + kcalCarb*cScale + kcalProtein*pScale;
+  if (actualKcal > kcalTarget * 1.15 && kcalProtein > 0) {
+    const maxProteinKcal = (kcalTarget * 1.1) - kcalFixed - kcalCarb*cScale;
+    const correctedPScale = Math.max(0.4, maxProteinKcal / kcalProtein);
+    if (correctedPScale < pScale) pScale = correctedPScale;
+  }
 
-  const scaledItems = items.map(([key, grams]) => {
+  return itemsPerMeal.map(items => items.map(([key, grams]) => {
     const n = NUTRI[key];
     let g = grams;
-    if (n.role === "protein") g = roundGrams(key, grams*pScale);
-    else if (n.role === "carb") g = roundGrams(key, grams*cScale);
+    if (n.role === "protein") g = roundIngredientAmount(key, grams*pScale);
+    else if (n.role === "carb") g = roundIngredientAmount(key, grams*cScale);
     return [key, g];
-  });
-
-  const kcal = scaledItems.reduce((s,[k,g]) => s + ingKcal(k,g), 0);
-  const p = scaledItems.reduce((s,[k,g]) => s + ingProtein(k,g), 0);
-  const price = scaledItems.reduce((s,[k,g]) => s + ingPrice(k,g), 0);
-  const descParts = scaledItems.map(([k,g]) => describeIngredient(k,g));
-  return { desc: descParts.join(", "), kcal: Math.round(kcal), p: Math.round(p), price: Math.round(price*100)/100, _items: scaledItems };
+  }));
 }
 
 function shuffle(arr){
@@ -1379,13 +1386,18 @@ function resolveDishName(dish, substitutedItems){
 
 function buildDayFromDishes(weekday, dishesBySlot, kcalTarget, proteinTarget, restrictions){
   const labels = ["Frühstück", "Mittagessen", "Abendessen", "Snack"];
+  const rawItemsPerMeal = dishesBySlot.map(dish => applyRestrictionsToDish(dish.items, restrictions));
+  const scaledItemsPerMeal = scaleDayItems(rawItemsPerMeal, kcalTarget, proteinTarget);
+
   const rows = dishesBySlot.map((dish, slot) => {
-    const items = applyRestrictionsToDish(dish.items, restrictions);
+    const items = rawItemsPerMeal[slot];
+    const scaledItems = scaledItemsPerMeal[slot];
     const displayName = resolveDishName(dish, items);
-    const kcalSlotTarget = Math.round(kcalTarget * MEAL_KCAL_SHARE[slot]);
-    const pSlotTarget = Math.round(proteinTarget * MEAL_P_SHARE[slot]);
-    const scaled = scaleDish(items, kcalSlotTarget, pSlotTarget);
-    return { label: labels[slot], desc: `${displayName} – ${scaled.desc}`, kcal: scaled.kcal, p: scaled.p, price: scaled.price, _items: scaled._items, _dishId: dish.id, _dishName: displayName };
+    const kcal = scaledItems.reduce((s,[k,g]) => s + ingKcal(k,g), 0);
+    const p = scaledItems.reduce((s,[k,g]) => s + ingProtein(k,g), 0);
+    const price = scaledItems.reduce((s,[k,g]) => s + ingPrice(k,g), 0);
+    const descParts = scaledItems.map(([k,g]) => describeIngredient(k,g));
+    return { label: labels[slot], desc: `${displayName} – ${descParts.join(", ")}`, kcal: Math.round(kcal), p: Math.round(p), price: Math.round(price*100)/100, _items: scaledItems, _dishId: dish.id, _dishName: displayName };
   });
   const totalKcal = rows.reduce((s,r) => s + r.kcal, 0);
   const totalP = rows.reduce((s,r) => s + r.p, 0);
