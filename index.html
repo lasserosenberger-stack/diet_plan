@@ -200,15 +200,19 @@
     letter-spacing:0.4px;
     vertical-align:middle;
   }
-  .complete-day-badge{
+  .day-complete-banner{
+    display:none;
     background:#3E6B4F;
     color:#EFE9D8;
-    font-size:10px;
+    font-size:12px;
     font-weight:700;
-    padding:2px 7px;
-    border-radius:10px;
-    vertical-align:middle;
+    text-align:center;
+    padding:6px 10px;
+    margin:-14px -16px 10px;
+    border-radius:9px 9px 0 0;
+    letter-spacing:0.3px;
   }
+  .day-card.day-complete .day-complete-banner{display:block;}
   .day-card.day-complete{
     border-left-color:#3E6B4F;
   }
@@ -2008,9 +2012,10 @@ function buildMealsPanel(){
     let diceHtml = currentPlanIsGenerated ? '<button class="dice-btn" data-day-idx="' + dayIdx + '" title="' + t('rollDiceTitle') + '">&#127922; ' + t('rollDice') + '</button>' : '';
     let leftoverHtml = currentPlanIsGenerated ? '<button class="dice-btn leftover-btn" data-day-idx="' + dayIdx + '" title="' + t('leftoverBtnTitle') + '">&#127811; ' + t('leftoverBtn') + '</button>' : '';
     const todayBadge = isToday ? '<span class="today-badge">' + t('todayBadge') + '</span>' : '';
-    const completeBadge = isComplete ? '<span class="complete-day-badge">&#10003; ' + t('dayCompleteBadge') + '</span>' : '';
+    const completeBanner = '<div class="day-complete-banner">&#10003; ' + t('dayCompleteBadge') + '</div>';
     card.innerHTML =
-      '<h2 class="day-header-toggle"><span class="collapse-chevron">&#9660;</span><span class="day-icon">' + style.icon + '</span>' + dayDisplayName(day.day) + todayBadge + completeBadge + ' <span class="theme">– ' + dayThemeShown + '</span>' + diceHtml + leftoverHtml + '</h2>' +
+      completeBanner +
+      '<h2 class="day-header-toggle"><span class="collapse-chevron">&#9660;</span><span class="day-icon">' + style.icon + '</span>' + dayDisplayName(day.day) + todayBadge + ' <span class="theme">– ' + dayThemeShown + '</span>' + diceHtml + leftoverHtml + '</h2>' +
       '<div class="day-body">' + headerHtml + rowsHtml + totalHtml + sportHtml + noteHtml + '</div>';
     panel.appendChild(card);
   });
@@ -2302,20 +2307,13 @@ function updateDayCompleteBadge(dayIdx){
   const card = document.querySelector('.day-card[data-day-idx="' + dayIdx + '"]');
   if (card) {
     card.classList.toggle('day-complete', allEaten);
-    const h2 = card.querySelector('.day-header-toggle');
-    let badge = h2.querySelector('.complete-day-badge');
-    if (allEaten) {
-      if (!badge) {
-        badge = document.createElement('span');
-        badge.className = 'complete-day-badge';
-        const themeEl = h2.querySelector('.theme');
-        if (themeEl) themeEl.insertAdjacentElement('beforebegin', badge);
-        else h2.appendChild(badge);
-      }
-      badge.innerHTML = '&#10003; ' + t('dayCompleteBadge'); // immer aktuelle Sprache setzen, auch bei bereits vorhandenem Abzeichen
-    } else if (badge) {
-      badge.remove();
+    let banner = card.querySelector('.day-complete-banner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.className = 'day-complete-banner';
+      card.insertBefore(banner, card.firstChild);
     }
+    banner.innerHTML = '&#10003; ' + t('dayCompleteBadge'); // immer aktuelle Sprache setzen
   }
   return allEaten;
 }
