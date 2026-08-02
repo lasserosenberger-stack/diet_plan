@@ -180,7 +180,36 @@
     margin-bottom:14px;
     position:relative;
     box-shadow:0 2px 8px rgba(15,20,17,0.25), 0 1px 2px rgba(15,20,17,0.15);
+    scroll-margin-top:14px;
   }
+  .day-card.collapsed{padding-bottom:14px;}
+  .day-card.collapsed .day-body{display:none;}
+  .day-card.today{
+    border-left-width:6px;
+    border-color:var(--mustard);
+    box-shadow:0 0 0 2px rgba(217,164,65,0.35), 0 4px 14px rgba(15,20,17,0.35);
+  }
+  .today-badge{
+    background:var(--mustard);
+    color:#2A1F0A;
+    font-size:10px;
+    font-weight:700;
+    padding:2px 7px;
+    border-radius:10px;
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    vertical-align:middle;
+  }
+  .day-header-toggle{cursor:pointer; user-select:none;}
+  .collapse-chevron{
+    flex:none;
+    font-size:11px;
+    color:var(--ink-muted);
+    display:inline-block;
+    transition:transform .18s ease;
+    width:12px;
+  }
+  .day-card.collapsed .collapse-chevron{transform:rotate(-90deg);}
   .day-card h2{
     font-family: Georgia, serif;
     font-size:16px;
@@ -190,6 +219,7 @@
     align-items:center;
     gap:8px;
   }
+  .day-card.collapsed h2{margin-bottom:0;}
   .day-icon{flex:none;width:20px;height:20px;color:var(--day-accent, var(--mustard-dark));}
   .day-icon svg{width:100%;height:100%;}
   .day-card h2 .theme{font-weight:400;color:var(--ink-muted);font-size:13px;}
@@ -289,7 +319,7 @@
   .meal-dice-btn:hover{opacity:1;}
 
   @media (max-width: 520px){
-    .meal-header{display:none;}
+    .meal-header{display:none !important;}
     .meal-row, .day-total, .day-sport{
       grid-template-columns: 22px 16px 1fr 1fr 1fr 1fr !important;
       grid-template-areas:
@@ -764,7 +794,7 @@ const I18N = {
     mealCol: "Mahlzeit", kcalCol: "Kcal", proteinCol: "Eiweiß", priceCol: "Preis",
     dayTotal: "Tagessumme", sportDayExtra: "Optionaler Sporttag-Snack (kcal-/proteinreich, nach Bedarf ergänzen)",
     sportDayLabel: "Sporttag",
-    rollDice: "Neu würfeln", rollDiceTitle: "Neue Gerichte nur für diesen Tag würfeln", rerollMealTitle: "Nur diese Mahlzeit neu würfeln",
+    rollDice: "Neu würfeln", rollDiceTitle: "Neue Gerichte nur für diesen Tag würfeln", rerollMealTitle: "Nur diese Mahlzeit neu würfeln", todayBadge: "Heute",
     leftoverBtn: "Reste", leftoverBtnTitle: "Ein Gericht mit bestimmten Resten finden",
     inCart: "Im Wagen", stillLeft: "Noch übrig", purchaseTotal: "gesamt",
     resetPurchase: "Haken für Einkauf {n} zurücksetzen",
@@ -804,7 +834,7 @@ const I18N = {
     mealCol: "Meal", kcalCol: "Kcal", proteinCol: "Protein", priceCol: "Price",
     dayTotal: "Daily total", sportDayExtra: "Optional workout-day snack (calorie-/protein-rich, add as needed)",
     sportDayLabel: "Workout day",
-    rollDice: "Reroll", rollDiceTitle: "Roll new dishes for this day only", rerollMealTitle: "Reroll just this meal",
+    rollDice: "Reroll", rollDiceTitle: "Roll new dishes for this day only", rerollMealTitle: "Reroll just this meal", todayBadge: "Today",
     leftoverBtn: "Leftovers", leftoverBtnTitle: "Find a dish using specific leftovers",
     inCart: "In cart", stillLeft: "Still left", purchaseTotal: "total",
     resetPurchase: "Reset checkmarks for shop {n}",
@@ -1851,7 +1881,7 @@ function fmt(v){ return v.toLocaleString('de-DE', {minimumFractionDigits:2, maxi
 
 function itemKey(einkauf, cat, idx){ return einkauf+"|"+cat+"|"+idx; }
 
-function fmtKcal(v, approx){ return (approx ? '≈ ' : '') + Math.round(v); }
+function fmtKcal(v, approx){ return (approx ? '≈ ' : '') + Math.round(v) + ' kcal'; }
 function fmtP(v, approx){ return (approx ? '≈' : '') + Math.round(v) + ' g'; }
 function fmtPrice(v, approx){ return (approx ? '≈' : '') + v.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €'; }
 
@@ -1870,13 +1900,40 @@ function renderMealDesc(row, slot){
   return { name: displayName, full: `${displayName} – ${descParts.join(', ')}` };
 }
 
+let dayCollapsed = null; // wird bei jedem Aufbau initialisiert (Standard: vergangene Tage eingeklappt)
+
+function getTodayInfo(){
+  const meta = weeksMeta[currentWeekId];
+  if (!meta) return { isCurrentWeek: false, todayIdx: -1 };
+  const todayIso = isoDate(new Date());
+  const isCurrentWeek = todayIso >= meta.start && todayIso <= meta.end;
+  const todayIdx = isCurrentWeek ? WEEKDAYS.indexOf(dayNameFromIso(todayIso)) : -1;
+  return { isCurrentWeek, todayIdx };
+}
+function dayNameFromIso(iso){
+  const d = parseISODate(iso);
+  const jsDay = d.getDay(); // 0=So,1=Mo,...
+  const idx = jsDay === 0 ? 6 : jsDay - 1; // WEEKDAYS beginnt mit Montag
+  return WEEKDAYS[idx];
+}
+
 function buildMealsPanel(){
   const panel = document.createElement('div');
   panel.className = 'panel active';
   panel.id = 'panel-meals';
+  const { isCurrentWeek, todayIdx } = getTodayInfo();
+
+  if (!dayCollapsed) {
+    // Erststart für diese Woche: vergangene Tage einklappen, heute & Zukunft offen lassen
+    dayCollapsed = {};
+    MEALS.forEach((day, i) => { dayCollapsed[i] = isCurrentWeek && i < todayIdx; });
+  }
+
   MEALS.forEach((day, dayIdx) => {
     const card = document.createElement('div');
-    card.className = 'day-card';
+    const isToday = isCurrentWeek && dayIdx === todayIdx;
+    card.className = 'day-card' + (dayCollapsed[dayIdx] ? ' collapsed' : '') + (isToday ? ' today' : '');
+    card.dataset.dayIdx = dayIdx;
     const style = DAY_STYLE[day.day] || {color:'#B9AE8F', icon:''};
     card.style.setProperty('--day-accent', style.color);
     let headerHtml = '<div class="meal-header"><span></span><span></span><span>' + t('mealCol') + '</span><span></span><span>' + t('kcalCol') + '</span><span>' + t('proteinCol') + '</span><span>' + t('priceCol') + '</span><span></span></div>';
@@ -1900,8 +1957,20 @@ function buildMealsPanel(){
     let noteHtml = day.note ? '<div class="meal-note">' + day.note + '</div>' : '';
     let diceHtml = currentPlanIsGenerated ? '<button class="dice-btn" data-day-idx="' + dayIdx + '" title="' + t('rollDiceTitle') + '">&#127922; ' + t('rollDice') + '</button>' : '';
     let leftoverHtml = currentPlanIsGenerated ? '<button class="dice-btn leftover-btn" data-day-idx="' + dayIdx + '" title="' + t('leftoverBtnTitle') + '">&#127811; ' + t('leftoverBtn') + '</button>' : '';
-    card.innerHTML = '<h2><span class="day-icon">' + style.icon + '</span>' + dayDisplayName(day.day) + ' <span class="theme">– ' + dayThemeShown + '</span>' + diceHtml + leftoverHtml + '</h2>' + headerHtml + rowsHtml + totalHtml + sportHtml + noteHtml;
+    const todayBadge = isToday ? '<span class="today-badge">' + t('todayBadge') + '</span>' : '';
+    card.innerHTML =
+      '<h2 class="day-header-toggle"><span class="collapse-chevron">&#9660;</span><span class="day-icon">' + style.icon + '</span>' + dayDisplayName(day.day) + todayBadge + ' <span class="theme">– ' + dayThemeShown + '</span>' + diceHtml + leftoverHtml + '</h2>' +
+      '<div class="day-body">' + headerHtml + rowsHtml + totalHtml + sportHtml + noteHtml + '</div>';
     panel.appendChild(card);
+  });
+  panel.querySelectorAll('.day-header-toggle').forEach(h2 => {
+    h2.onclick = (e) => {
+      if (e.target.closest('.dice-btn')) return; // Würfeln/Reste-Buttons sollen nicht ein-/ausklappen
+      const card = h2.closest('.day-card');
+      const idx = card.dataset.dayIdx;
+      dayCollapsed[idx] = !dayCollapsed[idx];
+      card.classList.toggle('collapsed', dayCollapsed[idx]);
+    };
   });
   panel.querySelectorAll('.dice-btn:not(.leftover-btn)').forEach(btn => {
     btn.onclick = () => randomizeDayInUI(parseInt(btn.dataset.dayIdx, 10));
@@ -2517,7 +2586,16 @@ async function applyWeekPlan(weekId){
     DATA = DEFAULT_DATA;
     currentPlanIsGenerated = false;
   }
+  dayCollapsed = null; // Einklapp-Status für die neu geladene Woche neu bestimmen
   buildUI();
+  scrollToTodayCard();
+}
+
+function scrollToTodayCard(){
+  setTimeout(() => {
+    const el = document.querySelector('.day-card.today');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 80);
 }
 
 async function switchToWeek(weekId){
