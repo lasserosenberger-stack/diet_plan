@@ -844,6 +844,9 @@ const I18N = {
     levelKept: "Bestes Level gehalten",
     resetAll: "Alle Haken zurücksetzen",
     asNeeded: "nach Bedarf",
+    saved: "Gespeichert", saving: "Speichert…", saveFailed: "Nicht gespeichert – wird automatisch erneut versucht",
+    saveFailBanner: "Das automatische Speichern schlägt seit mehreren Minuten fehl. Bitte Internetverbindung prüfen und die Seite ggf. neu laden.",
+    retryBtn: "Erneut versuchen", loadingBtn: "Lädt…",
   },
   en: {
     appTitle: "Meal Plan", appSub: "Meals & Shopping",
@@ -884,6 +887,9 @@ const I18N = {
     levelKept: "Best level kept",
     resetAll: "Reset all checkmarks",
     asNeeded: "as needed",
+    saved: "Saved", saving: "Saving…", saveFailed: "Not saved – will retry automatically",
+    saveFailBanner: "Automatic saving has been failing for several minutes. Please check your internet connection and reload the page if needed.",
+    retryBtn: "Retry", loadingBtn: "Loading…",
   }
 };
 
@@ -2174,9 +2180,9 @@ function setSaveStatus(status){
   const el = document.getElementById('save-status');
   if (!el) return;
   el.classList.remove('ok','warn','bad');
-  if (status === 'saved') { el.textContent = 'Gespeichert'; el.classList.add('ok'); }
-  else if (status === 'saving') { el.textContent = 'Speichert…'; el.classList.add('warn'); }
-  else if (status === 'failed') { el.textContent = 'Nicht gespeichert – wird automatisch erneut versucht'; el.classList.add('bad'); }
+  if (status === 'saved') { el.textContent = t('saved'); el.classList.add('ok'); }
+  else if (status === 'saving') { el.textContent = t('saving'); el.classList.add('warn'); }
+  else if (status === 'failed') { el.textContent = t('saveFailed'); el.classList.add('bad'); }
   else { el.textContent = ''; }
 }
 
@@ -2185,7 +2191,7 @@ function showFailBanner(){
   const el = document.createElement('div');
   el.id = 'save-fail-banner';
   el.style.cssText = 'max-width:640px;margin:0 auto 12px;background:#5A3A2A;border:1px solid #7A5238;color:#F0DFC9;border-radius:8px;padding:10px 14px;font-size:12.5px;text-align:center;';
-  el.textContent = 'Das automatische Speichern schlägt seit mehreren Minuten fehl. Bitte Internetverbindung prüfen und die Seite ggf. neu laden.';
+  el.textContent = t('saveFailBanner');
   document.querySelector('.wrap').insertBefore(el, document.getElementById('tabs'));
 }
 
@@ -2616,11 +2622,11 @@ function showRetryButton(){
   if (document.getElementById('app-retry-btn')) return;
   const btn = document.createElement('button');
   btn.id = 'app-retry-btn';
-  btn.textContent = 'Erneut versuchen';
+  btn.textContent = t('retryBtn');
   btn.style.cssText = 'display:block;margin:0 auto 12px;background:var(--mustard);color:#2A1F0A;border:none;border-radius:6px;padding:8px 16px;font-size:12.5px;font-weight:600;cursor:pointer;';
   btn.onclick = async () => {
     btn.disabled = true;
-    btn.textContent = 'Lädt…';
+    btn.textContent = t('loadingBtn');
     hideAppError();
     await initWeeks();
   };
