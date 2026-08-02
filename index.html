@@ -200,6 +200,21 @@
     letter-spacing:0.4px;
     vertical-align:middle;
   }
+  .complete-day-badge{
+    background:#3E6B4F;
+    color:#EFE9D8;
+    font-size:10px;
+    font-weight:700;
+    padding:2px 7px;
+    border-radius:10px;
+    vertical-align:middle;
+  }
+  .day-card.day-complete{
+    border-left-color:#3E6B4F;
+  }
+  .day-card.day-complete.today{
+    box-shadow:0 0 0 2px rgba(62,107,79,0.4), 0 4px 14px rgba(15,20,17,0.35);
+  }
   .day-header-toggle{cursor:pointer; user-select:none;}
   .collapse-chevron{
     flex:none;
@@ -337,6 +352,18 @@
     .meal-row > *:nth-child(6), .day-total > *:nth-child(6), .day-sport > *:nth-child(6){grid-area:c6; text-align:left;}
     .meal-row > *:nth-child(7), .day-total > *:nth-child(7), .day-sport > *:nth-child(7){grid-area:c7; text-align:right;}
     .meal-row > *:nth-child(8), .day-total > *:nth-child(8), .day-sport > *:nth-child(8){grid-area:c8; justify-self:end;}
+
+    .day-card h2{
+      flex-wrap: wrap;
+      align-items: flex-start;
+      row-gap: 4px;
+    }
+    .day-card h2 .theme{
+      flex-basis: 100%;
+      margin: 0 0 2px 26px;
+    }
+    .dice-btn{ margin-left:0; }
+    .dice-btn.leftover-btn{ margin-left:6px; }
   }
   .meal-header{
     display:grid;
@@ -794,7 +821,7 @@ const I18N = {
     mealCol: "Mahlzeit", kcalCol: "Kcal", proteinCol: "Eiweiß", priceCol: "Preis",
     dayTotal: "Tagessumme", sportDayExtra: "Optionaler Sporttag-Snack (kcal-/proteinreich, nach Bedarf ergänzen)",
     sportDayLabel: "Sporttag",
-    rollDice: "Neu würfeln", rollDiceTitle: "Neue Gerichte nur für diesen Tag würfeln", rerollMealTitle: "Nur diese Mahlzeit neu würfeln", todayBadge: "Heute",
+    rollDice: "Neu würfeln", rollDiceTitle: "Neue Gerichte nur für diesen Tag würfeln", rerollMealTitle: "Nur diese Mahlzeit neu würfeln", todayBadge: "Heute", dayCompleteBadge: "Geschafft",
     leftoverBtn: "Reste", leftoverBtnTitle: "Ein Gericht mit bestimmten Resten finden",
     inCart: "Im Wagen", stillLeft: "Noch übrig", purchaseTotal: "gesamt",
     resetPurchase: "Haken für Einkauf {n} zurücksetzen",
@@ -834,7 +861,7 @@ const I18N = {
     mealCol: "Meal", kcalCol: "Kcal", proteinCol: "Protein", priceCol: "Price",
     dayTotal: "Daily total", sportDayExtra: "Optional workout-day snack (calorie-/protein-rich, add as needed)",
     sportDayLabel: "Workout day",
-    rollDice: "Reroll", rollDiceTitle: "Roll new dishes for this day only", rerollMealTitle: "Reroll just this meal", todayBadge: "Today",
+    rollDice: "Reroll", rollDiceTitle: "Roll new dishes for this day only", rerollMealTitle: "Reroll just this meal", todayBadge: "Today", dayCompleteBadge: "Done",
     leftoverBtn: "Leftovers", leftoverBtnTitle: "Find a dish using specific leftovers",
     inCart: "In cart", stillLeft: "Still left", purchaseTotal: "total",
     resetPurchase: "Reset checkmarks for shop {n}",
@@ -1954,7 +1981,8 @@ function buildMealsPanel(){
   MEALS.forEach((day, dayIdx) => {
     const card = document.createElement('div');
     const isToday = isCurrentWeek && dayIdx === todayIdx;
-    card.className = 'day-card' + (dayCollapsed[dayIdx] ? ' collapsed' : '') + (isToday ? ' today' : '');
+    const isComplete = [0,1,2,3].every(slot => !!eaten[dayIdx + '|' + slot]);
+    card.className = 'day-card' + (dayCollapsed[dayIdx] ? ' collapsed' : '') + (isToday ? ' today' : '') + (isComplete ? ' day-complete' : '');
     card.dataset.dayIdx = dayIdx;
     const style = DAY_STYLE[day.day] || {color:'#B9AE8F', icon:''};
     card.style.setProperty('--day-accent', style.color);
@@ -1980,8 +2008,9 @@ function buildMealsPanel(){
     let diceHtml = currentPlanIsGenerated ? '<button class="dice-btn" data-day-idx="' + dayIdx + '" title="' + t('rollDiceTitle') + '">&#127922; ' + t('rollDice') + '</button>' : '';
     let leftoverHtml = currentPlanIsGenerated ? '<button class="dice-btn leftover-btn" data-day-idx="' + dayIdx + '" title="' + t('leftoverBtnTitle') + '">&#127811; ' + t('leftoverBtn') + '</button>' : '';
     const todayBadge = isToday ? '<span class="today-badge">' + t('todayBadge') + '</span>' : '';
+    const completeBadge = isComplete ? '<span class="complete-day-badge">&#10003; ' + t('dayCompleteBadge') + '</span>' : '';
     card.innerHTML =
-      '<h2 class="day-header-toggle"><span class="collapse-chevron">&#9660;</span><span class="day-icon">' + style.icon + '</span>' + dayDisplayName(day.day) + todayBadge + ' <span class="theme">– ' + dayThemeShown + '</span>' + diceHtml + leftoverHtml + '</h2>' +
+      '<h2 class="day-header-toggle"><span class="collapse-chevron">&#9660;</span><span class="day-icon">' + style.icon + '</span>' + dayDisplayName(day.day) + todayBadge + completeBadge + ' <span class="theme">– ' + dayThemeShown + '</span>' + diceHtml + leftoverHtml + '</h2>' +
       '<div class="day-body">' + headerHtml + rowsHtml + totalHtml + sportHtml + noteHtml + '</div>';
     panel.appendChild(card);
   });
@@ -2253,6 +2282,23 @@ async function toggleEaten(dayIdx, slot, row){
 
   const dayRows = document.querySelectorAll('.meal-row[data-day-idx="' + dayIdx + '"]');
   const allEaten = dayRows.length > 0 && [...dayRows].every(r => r.classList.contains('eaten'));
+
+  const card = document.querySelector('.day-card[data-day-idx="' + dayIdx + '"]');
+  if (card) {
+    card.classList.toggle('day-complete', allEaten);
+    const h2 = card.querySelector('.day-header-toggle');
+    let badge = h2.querySelector('.complete-day-badge');
+    if (allEaten && !badge) {
+      badge = document.createElement('span');
+      badge.className = 'complete-day-badge';
+      badge.innerHTML = '&#10003; ' + t('dayCompleteBadge');
+      const themeEl = h2.querySelector('.theme');
+      if (themeEl) themeEl.insertAdjacentElement('beforebegin', badge);
+      else h2.appendChild(badge);
+    } else if (!allEaten && badge) {
+      badge.remove();
+    }
+  }
 
   if (allEaten) {
     const dayName = MEALS[dayIdx] ? MEALS[dayIdx].day : 'Tag';
