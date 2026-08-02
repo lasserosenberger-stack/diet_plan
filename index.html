@@ -56,6 +56,12 @@
     gap:6px;
     margin-bottom:14px;
   }
+  .loading-hint{
+    text-align:center;
+    color:#A8A290;
+    font-size:13px;
+    padding:40px 0;
+  }
   .tab{
     flex:1;
     background:transparent;
@@ -2197,7 +2203,8 @@ function showApp(email){
   document.getElementById('app-content').style.display = 'block';
   document.getElementById('user-email-display').textContent = email || '';
   applyI18n();
-  buildUI();
+  document.getElementById('tabs').innerHTML = '';
+  document.getElementById('panels').innerHTML = '<div class="loading-hint">' + (currentLang === 'en' ? 'Loading…' : 'Lädt…') + '</div>';
   initWeeks();
   loadXP();
 }
@@ -2400,6 +2407,7 @@ async function initWeeks(){
     // WICHTIG: Hier NICHT einfach eine neue leere Woche erstellen - das würde echte,
     // vorhandene Wochen in der Anzeige verdecken, wenn nur das Laden fehlgeschlagen ist
     // (z.B. abgelaufenes Token). Stattdessen Fehler klar anzeigen und Wiederholen anbieten.
+    document.getElementById('panels').innerHTML = '';
     showAppError('Wochenliste konnte nicht geladen werden (' + lastError.message + '). Deine gespeicherten Pläne sind nicht verloren – bitte "Erneut versuchen" klicken oder neu anmelden.');
     showRetryButton();
     updateDebugLine([]);
