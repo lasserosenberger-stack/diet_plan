@@ -626,6 +626,12 @@
     font-size:14px;
   }
   .modal-checks{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--ink);}
+  .day-picker{display:flex;gap:4px;flex-wrap:wrap;}
+  .day-pick{
+    display:flex;flex-direction:column;align-items:center;gap:2px;
+    font-size:10.5px;font-weight:400;color:var(--ink-muted);
+  }
+  .day-pick input{margin:0;}
   .modal-checks label{display:flex;align-items:center;gap:8px;font-weight:400;}
   .modal-row{display:flex;gap:8px;margin-top:18px;}
   .modal-row .sync-btn{flex:1;background:transparent;border:1px solid var(--mustard-dark);color:var(--mustard-dark);padding:9px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;}
@@ -748,6 +754,17 @@
       <label><input type="checkbox" id="nw-nonuts"> <span data-i18n="noNuts">Keine Nüsse</span></label>
       <label><input type="checkbox" id="nw-digestive"> <span data-i18n="digestive">Verdauungsschonend</span></label>
     </div>
+    <label class="modal-label" data-i18n="shoppingDaysLabel">Einkaufstage</label>
+    <div class="day-picker">
+      <label class="day-pick"><input type="checkbox" id="nw-day-0"> <span data-i18n="dayMon">Mo</span></label>
+      <label class="day-pick"><input type="checkbox" id="nw-day-1"> <span data-i18n="dayTue">Di</span></label>
+      <label class="day-pick"><input type="checkbox" id="nw-day-2"> <span data-i18n="dayWed">Mi</span></label>
+      <label class="day-pick"><input type="checkbox" id="nw-day-3"> <span data-i18n="dayThu">Do</span></label>
+      <label class="day-pick"><input type="checkbox" id="nw-day-4"> <span data-i18n="dayFri">Fr</span></label>
+      <label class="day-pick"><input type="checkbox" id="nw-day-5"> <span data-i18n="daySat">Sa</span></label>
+      <label class="day-pick"><input type="checkbox" id="nw-day-6"> <span data-i18n="daySun">So</span></label>
+    </div>
+
 
     <div class="modal-row">
       <button class="sync-btn" id="nw-cancel" data-i18n="cancel">Abbrechen</button>
@@ -776,6 +793,17 @@
       <label><input type="checkbox" id="st-nonuts"> <span data-i18n="noNuts">Keine Nüsse</span></label>
       <label><input type="checkbox" id="st-digestive"> <span data-i18n="digestive">Verdauungsschonend</span></label>
     </div>
+    <label class="modal-label" data-i18n="shoppingDaysLabel">Einkaufstage</label>
+    <div class="day-picker">
+      <label class="day-pick"><input type="checkbox" id="st-day-0"> <span data-i18n="dayMon">Mo</span></label>
+      <label class="day-pick"><input type="checkbox" id="st-day-1"> <span data-i18n="dayTue">Di</span></label>
+      <label class="day-pick"><input type="checkbox" id="st-day-2"> <span data-i18n="dayWed">Mi</span></label>
+      <label class="day-pick"><input type="checkbox" id="st-day-3"> <span data-i18n="dayThu">Do</span></label>
+      <label class="day-pick"><input type="checkbox" id="st-day-4"> <span data-i18n="dayFri">Fr</span></label>
+      <label class="day-pick"><input type="checkbox" id="st-day-5"> <span data-i18n="daySat">Sa</span></label>
+      <label class="day-pick"><input type="checkbox" id="st-day-6"> <span data-i18n="daySun">So</span></label>
+    </div>
+
 
     <div class="modal-row">
       <button class="sync-btn" id="st-cancel" data-i18n="cancel">Abbrechen</button>
@@ -804,6 +832,17 @@
       <label><input type="checkbox" id="dg-nonuts"> <span data-i18n="noNuts">Keine Nüsse</span></label>
       <label><input type="checkbox" id="dg-digestive"> <span data-i18n="digestive">Verdauungsschonend</span></label>
     </div>
+    <label class="modal-label" data-i18n="shoppingDaysLabel">Einkaufstage</label>
+    <div class="day-picker">
+      <label class="day-pick"><input type="checkbox" id="dg-day-0"> <span data-i18n="dayMon">Mo</span></label>
+      <label class="day-pick"><input type="checkbox" id="dg-day-1"> <span data-i18n="dayTue">Di</span></label>
+      <label class="day-pick"><input type="checkbox" id="dg-day-2"> <span data-i18n="dayWed">Mi</span></label>
+      <label class="day-pick"><input type="checkbox" id="dg-day-3"> <span data-i18n="dayThu">Do</span></label>
+      <label class="day-pick"><input type="checkbox" id="dg-day-4"> <span data-i18n="dayFri">Fr</span></label>
+      <label class="day-pick"><input type="checkbox" id="dg-day-5"> <span data-i18n="daySat">Sa</span></label>
+      <label class="day-pick"><input type="checkbox" id="dg-day-6"> <span data-i18n="daySun">So</span></label>
+    </div>
+
 
     <div class="modal-row">
       <button class="sync-btn" id="dg-cancel" data-i18n="cancel">Abbrechen</button>
@@ -879,6 +918,7 @@ const I18N = {
     dailyKcalGoal: "Tagesziel Kalorien", dailyProteinGoal: "Tagesziel Eiweiß (g)",
     dietaryRestrictions: "Ernährungseinschränkungen",
     vegetarian: "Vegetarisch", vegan: "Vegan", noFish: "Kein Fisch", noNuts: "Keine Nüsse", digestive: "Verdauungsschonend",
+    shoppingDaysLabel: "Einkaufstage", dayMon: "Mo", dayTue: "Di", dayWed: "Mi", dayThu: "Do", dayFri: "Fr", daySat: "Sa", daySun: "So",
     cancel: "Abbrechen", generatePlan: "Plan erstellen", weekGoalsTitle: "Ziele dieser Woche", apply: "Übernehmen",
     leftoverTitle: "Reste verwerten",
     leftoverSub: "Wähle 1–2 Zutaten, die du aufbrauchen möchtest. Es wird ein passendes Gericht aus dem Pool gesucht.",
@@ -924,6 +964,7 @@ const I18N = {
     dailyKcalGoal: "Daily calorie goal", dailyProteinGoal: "Daily protein goal (g)",
     dietaryRestrictions: "Dietary restrictions",
     vegetarian: "Vegetarian", vegan: "Vegan", noFish: "No fish", noNuts: "No nuts", digestive: "Gut on digestion",
+    shoppingDaysLabel: "Shopping days", dayMon: "Mon", dayTue: "Tue", dayWed: "Wed", dayThu: "Thu", dayFri: "Fri", daySat: "Sat", daySun: "Sun",
     cancel: "Cancel", generatePlan: "Generate plan", weekGoalsTitle: "This week's goals", apply: "Apply",
     leftoverTitle: "Use up leftovers",
     leftoverSub: "Pick 1–2 ingredients you want to use up. A matching dish from the pool will be found.",
@@ -1610,7 +1651,7 @@ function weightedPickDish(pool, excludeIds, ingredientsInTrip){
   return candidates[candidates.length - 1];
 }
 
-function generatePlan(kcalTarget, proteinTarget, restrictions, recentDishIds){
+function generatePlan(kcalTarget, proteinTarget, restrictions, recentDishIds, shoppingDays){
   recentDishIds = recentDishIds || { breakfast: new Set(), main: new Set(), snack: new Set() };
   const tripOfDayIdx = [0,0,1,1,2,2,2]; // Montag..Sonntag -> Einkaufsfahrt (Mo/Mi/Fr)
 
@@ -1638,23 +1679,23 @@ function generatePlan(kcalTarget, proteinTarget, restrictions, recentDishIds){
     return buildDayFromDishes(weekday, dishesBySlot, kcalTarget, proteinTarget, restrictions);
   });
 
-  const data = buildShoppingFromMeals(meals);
+  const data = buildShoppingFromMeals(meals, shoppingDays);
   return { meals, data };
 }
 
 // Behält die bereits gewählten Gerichte einer Woche bei, skaliert sie nur neu auf geänderte Ziele/Einschränkungen.
-function regeneratePlanKeepDishes(existingMeals, kcalTarget, proteinTarget, restrictions){
+function regeneratePlanKeepDishes(existingMeals, kcalTarget, proteinTarget, restrictions, shoppingDays){
   const pools = [BREAKFAST_BY_ID, MAIN_BY_ID, MAIN_BY_ID, SNACK_BY_ID];
   const meals = existingMeals.map(day => {
     const dishesBySlot = day.rows.map((row, slot) => pools[slot][row._dishId] || (slot===0 ? BREAKFAST_POOL[0] : slot===3 ? SNACK_POOL[0] : MAIN_POOL[0]));
     return buildDayFromDishes(day.day, dishesBySlot, kcalTarget, proteinTarget, restrictions);
   });
-  const data = buildShoppingFromMeals(meals);
+  const data = buildShoppingFromMeals(meals, shoppingDays);
   return { meals, data };
 }
 
 // Würfelt nur die Gerichte eines einzelnen Tages neu, Rest der Woche bleibt unverändert.
-function randomizeSingleDay(existingMeals, dayIndex, kcalTarget, proteinTarget, restrictions){
+function randomizeSingleDay(existingMeals, dayIndex, kcalTarget, proteinTarget, restrictions, shoppingDays){
   const usedElsewhere = { breakfast: new Set(), main: new Set(), snack: new Set() };
   existingMeals.forEach((day, i) => {
     if (i === dayIndex) return;
@@ -1677,13 +1718,13 @@ function randomizeSingleDay(existingMeals, dayIndex, kcalTarget, proteinTarget, 
 
   const meals = existingMeals.slice();
   meals[dayIndex] = newDay;
-  const data = buildShoppingFromMeals(meals);
+  const data = buildShoppingFromMeals(meals, shoppingDays);
   return { meals, data };
 }
 
 // Würfelt nur EINE einzelne Mahlzeit (einen Slot) neu, die anderen 3 Gerichte des Tages bleiben.
 // Der ganze Tag wird danach über buildDayFromDishes neu skaliert, damit Kcal/Eiweiß wieder stimmen.
-function randomizeSingleMeal(existingMeals, dayIndex, slot, kcalTarget, proteinTarget, restrictions){
+function randomizeSingleMeal(existingMeals, dayIndex, slot, kcalTarget, proteinTarget, restrictions, shoppingDays){
   const pools = [filterBreakfastPool(restrictions), MAIN_POOL, MAIN_POOL, SNACK_POOL];
   const byId = [BREAKFAST_BY_ID, MAIN_BY_ID, MAIN_BY_ID, SNACK_BY_ID];
   const currentDay = existingMeals[dayIndex];
@@ -1701,7 +1742,7 @@ function randomizeSingleMeal(existingMeals, dayIndex, slot, kcalTarget, proteinT
   const newDay = buildDayFromDishes(currentDay.day, dishesBySlot, kcalTarget, proteinTarget, restrictions);
   const meals = existingMeals.slice();
   meals[dayIndex] = newDay;
-  const data = buildShoppingFromMeals(meals);
+  const data = buildShoppingFromMeals(meals, shoppingDays);
   return { meals, data };
 }
 
@@ -1731,15 +1772,32 @@ function shoppingLabelParts(key, grams){
 }
 
 // Aggregiert die generierten Zutaten zu 3 Einkäufen (Mo+Di / Mi+Do / Fr+Sa+So), gruppiert nach Kategorie.
-function buildShoppingFromMeals(meals){
-  const tripOf = { "Montag":0, "Dienstag":0, "Mittwoch":1, "Donnerstag":1, "Freitag":2, "Samstag":2, "Sonntag":2 };
-  const tripDay = ["Montag", "Mittwoch", "Freitag"];
-  const trips = [{}, {}, {}];
+// Berechnet, welcher Wochentag zu welcher Einkaufsfahrt gehört: jeder Einkaufstag deckt sich selbst
+// und alle Tage bis zum nächsten gewählten Einkaufstag ab. Tage VOR dem ersten Einkaufstag der Woche
+// werden dem LETZTEN Einkaufstag zugeordnet (der Einkauf vom Vorwochenende deckt den Wochenanfang ab).
+function computeTripAssignment(shoppingDayIndices){
+  const sorted = [...new Set(shoppingDayIndices)].sort((a,b) => a-b);
+  const trips = sorted.length > 0 ? sorted : [0]; // Sicherheitsnetz: mindestens ein Einkaufstag
+  const tripOfDayIdx = [];
+  for (let d = 0; d < 7; d++) {
+    const candidates = trips.filter(s => s <= d);
+    const assignedDay = candidates.length > 0 ? candidates[candidates.length - 1] : trips[trips.length - 1];
+    tripOfDayIdx.push(trips.indexOf(assignedDay));
+  }
+  return { tripOfDayIdx, trips };
+}
+
+function buildShoppingFromMeals(meals, shoppingDayIndices){
+  const { tripOfDayIdx, trips } = computeTripAssignment(shoppingDayIndices || [0,2,4]);
+  const tripDay = trips.map(idx => WEEKDAYS[idx]);
+  const dayIdxOf = { "Montag":0, "Dienstag":1, "Mittwoch":2, "Donnerstag":3, "Freitag":4, "Samstag":5, "Sonntag":6 };
+  const numTrips = trips.length;
+  const tripsData = Array.from({length: numTrips}, () => ({}));
   const weeklyPantryTotals = {};   // Vorrat: über die ganze Woche summiert, nur einmal einplanen
   const firstTripNeeding = {};     // Vorrat: erste Fahrt, die die Zutat braucht
 
   meals.forEach(day => {
-    const tripIdx = tripOf[day.day];
+    const tripIdx = tripOfDayIdx[dayIdxOf[day.day]];
     day.rows.forEach(row => {
       (row._items || []).forEach(([key, grams]) => {
         const n = NUTRI[key];
@@ -1750,8 +1808,8 @@ function buildShoppingFromMeals(meals){
           if (firstTripNeeding[key] === undefined) firstTripNeeding[key] = tripIdx;
         } else {
           // Frische/kühlpflichtige Kategorien: pro Fahrt frisch einkaufen.
-          if (!trips[tripIdx][key]) trips[tripIdx][key] = 0;
-          trips[tripIdx][key] += grams;
+          if (!tripsData[tripIdx][key]) tripsData[tripIdx][key] = 0;
+          tripsData[tripIdx][key] += grams;
         }
       });
     });
@@ -1759,11 +1817,11 @@ function buildShoppingFromMeals(meals){
 
   Object.entries(weeklyPantryTotals).forEach(([key, grams]) => {
     const tripIdx = firstTripNeeding[key];
-    if (!trips[tripIdx][key]) trips[tripIdx][key] = 0;
-    trips[tripIdx][key] += grams;
+    if (!tripsData[tripIdx][key]) tripsData[tripIdx][key] = 0;
+    tripsData[tripIdx][key] += grams;
   });
 
-  const data = trips.map((items, idx) => {
+  const data = tripsData.map((items, idx) => {
     const byCat = {};
     Object.entries(items).forEach(([key, grams]) => {
       const n = NUTRI[key];
@@ -1901,11 +1959,11 @@ function xpPath(){
 function userDefaultsPath(){
   return `users/${authState.uid}/defaults`;
 }
-let userDefaults = { kcalGoal: 1537, proteinGoal: 113, restrictions: {} };
+let userDefaults = { kcalGoal: 1537, proteinGoal: 113, restrictions: {}, shoppingDays: [0,2,4] };
 async function loadUserDefaults(){
   try {
     const data = await firebaseRequest(userDefaultsPath());
-    if (data) userDefaults = { kcalGoal: data.kcalGoal || 1537, proteinGoal: data.proteinGoal || 113, restrictions: data.restrictions || {} };
+    if (data) userDefaults = { kcalGoal: data.kcalGoal || 1537, proteinGoal: data.proteinGoal || 113, restrictions: data.restrictions || {}, shoppingDays: (data.shoppingDays && data.shoppingDays.length) ? data.shoppingDays : [0,2,4] };
   } catch(e) {
     console.warn('Standard-Ziele konnten nicht geladen werden:', e.message);
   }
@@ -2898,6 +2956,22 @@ document.getElementById('week-delete-btn').onclick = async () => {
   }
 };
 
+function setDayCheckboxes(prefix, indices){
+  const set = new Set(indices || []);
+  for (let i = 0; i < 7; i++) {
+    const el = document.getElementById(prefix + '-day-' + i);
+    if (el) el.checked = set.has(i);
+  }
+}
+function readDayCheckboxes(prefix){
+  const result = [];
+  for (let i = 0; i < 7; i++) {
+    const el = document.getElementById(prefix + '-day-' + i);
+    if (el && el.checked) result.push(i);
+  }
+  return result.length > 0 ? result : [0]; // Sicherheitsnetz: mindestens ein Tag muss gewählt sein
+}
+
 document.getElementById('default-goals-btn').onclick = () => {
   document.getElementById('dg-kcal').value = userDefaults.kcalGoal;
   document.getElementById('dg-protein').value = userDefaults.proteinGoal;
@@ -2907,6 +2981,7 @@ document.getElementById('default-goals-btn').onclick = () => {
   document.getElementById('dg-nofish').checked = !!r.noFish;
   document.getElementById('dg-nonuts').checked = !!r.noNuts;
   document.getElementById('dg-digestive').checked = !!r.digestive;
+  setDayCheckboxes('dg', userDefaults.shoppingDays);
   document.getElementById('dg-msg').textContent = '';
   document.getElementById('default-goals-modal').classList.add('show');
 };
@@ -2926,7 +3001,8 @@ document.getElementById('dg-save').onclick = async () => {
       noFish: document.getElementById('dg-nofish').checked,
       noNuts: document.getElementById('dg-nonuts').checked,
       digestive: document.getElementById('dg-digestive').checked
-    }
+    },
+    shoppingDays: readDayCheckboxes('dg')
   };
   msg.style.color = 'var(--ink-muted)';
   msg.textContent = t('defaultGoalsSaved');
@@ -2944,6 +3020,7 @@ document.getElementById('week-add-btn').onclick = () => {
   document.getElementById('nw-nofish').checked = !!r.noFish;
   document.getElementById('nw-nonuts').checked = !!r.noNuts;
   document.getElementById('nw-digestive').checked = !!r.digestive;
+  setDayCheckboxes('nw', userDefaults.shoppingDays);
   document.getElementById('newweek-modal').classList.add('show');
 };
 
@@ -2962,6 +3039,7 @@ document.getElementById('nw-generate').onclick = async () => {
     noNuts: document.getElementById('nw-nonuts').checked,
     digestive: document.getElementById('nw-digestive').checked
   };
+  const shoppingDays = readDayCheckboxes('nw');
 
   msg.style.color = 'var(--ink-muted)';
   msg.textContent = 'Plan wird erstellt…';
@@ -2983,8 +3061,8 @@ document.getElementById('nw-generate').onclick = async () => {
       } catch(e) { /* keine Vorwoche vorhanden oder Ladefehler - ignorieren, dann ohne Sperre generieren */ }
     }
 
-    const plan = generatePlan(kcal, protein, restrictions, recentDishIds);
-    weeksMeta[weekId] = { start: isoDate(newStart), end: isoDate(newEnd), kcalGoal: kcal, proteinGoal: protein, restrictions };
+    const plan = generatePlan(kcal, protein, restrictions, recentDishIds, shoppingDays);
+    weeksMeta[weekId] = { start: isoDate(newStart), end: isoDate(newEnd), kcalGoal: kcal, proteinGoal: protein, restrictions, shoppingDays };
     await saveWeekMeta(weekId, weeksMeta[weekId]);
     await savePlanForWeek(weekId, plan);
     document.getElementById('newweek-modal').classList.remove('show');
@@ -3007,6 +3085,7 @@ document.getElementById('week-settings-btn').onclick = () => {
   document.getElementById('st-nofish').checked = !!r.noFish;
   document.getElementById('st-nonuts').checked = !!r.noNuts;
   document.getElementById('st-digestive').checked = !!r.digestive;
+  setDayCheckboxes('st', meta.shoppingDays || userDefaults.shoppingDays);
   document.getElementById('settings-sub').textContent = currentPlanIsGenerated
     ? t('settingsSubGenerated')
     : t('settingsSubDefault');
@@ -3029,16 +3108,17 @@ document.getElementById('st-apply').onclick = async () => {
     noNuts: document.getElementById('st-nonuts').checked,
     digestive: document.getElementById('st-digestive').checked
   };
+  const shoppingDays = readDayCheckboxes('st');
 
   msg.style.color = 'var(--ink-muted)';
   msg.textContent = 'Wird aktualisiert…';
 
   try {
     const plan = currentPlanIsGenerated
-      ? regeneratePlanKeepDishes(MEALS, kcal, protein, restrictions)
-      : generatePlan(kcal, protein, restrictions, null);
+      ? regeneratePlanKeepDishes(MEALS, kcal, protein, restrictions, shoppingDays)
+      : generatePlan(kcal, protein, restrictions, null, shoppingDays);
 
-    weeksMeta[currentWeekId] = { ...weeksMeta[currentWeekId], kcalGoal: kcal, proteinGoal: protein, restrictions };
+    weeksMeta[currentWeekId] = { ...weeksMeta[currentWeekId], kcalGoal: kcal, proteinGoal: protein, restrictions, shoppingDays };
     await saveWeekMeta(currentWeekId, weeksMeta[currentWeekId]);
     await savePlanForWeek(currentWeekId, plan);
 
@@ -3061,9 +3141,10 @@ async function randomizeDayInUI(dayIdx){
   const kcal = meta.kcalGoal || userDefaults.kcalGoal;
   const protein = meta.proteinGoal || userDefaults.proteinGoal;
   const restrictions = meta.restrictions || {};
+  const shoppingDays = meta.shoppingDays || userDefaults.shoppingDays;
 
   try {
-    const plan = randomizeSingleDay(MEALS, dayIdx, kcal, protein, restrictions);
+    const plan = randomizeSingleDay(MEALS, dayIdx, kcal, protein, restrictions, shoppingDays);
     await savePlanForWeek(currentWeekId, plan);
     MEALS = plan.meals;
     DATA = plan.data;
@@ -3082,9 +3163,10 @@ async function randomizeSingleMealInUI(dayIdx, slot){
   const kcal = meta.kcalGoal || userDefaults.kcalGoal;
   const protein = meta.proteinGoal || userDefaults.proteinGoal;
   const restrictions = meta.restrictions || {};
+  const shoppingDays = meta.shoppingDays || userDefaults.shoppingDays;
 
   try {
-    const plan = randomizeSingleMeal(MEALS, dayIdx, slot, kcal, protein, restrictions);
+    const plan = randomizeSingleMeal(MEALS, dayIdx, slot, kcal, protein, restrictions, shoppingDays);
     await savePlanForWeek(currentWeekId, plan);
     MEALS = plan.meals;
     DATA = plan.data;
@@ -3175,7 +3257,7 @@ document.getElementById('lo-apply').onclick = async () => {
     const newDay = buildDayFromDishes(currentDay.day, dishesBySlot, kcal, protein, restrictions);
     const meals = MEALS.slice();
     meals[leftoverDayIdx] = newDay;
-    const data = buildShoppingFromMeals(meals);
+    const data = buildShoppingFromMeals(meals, meta.shoppingDays || userDefaults.shoppingDays);
 
     await savePlanForWeek(currentWeekId, { meals, data });
     MEALS = meals;
