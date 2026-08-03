@@ -298,8 +298,22 @@
   .cat:first-child{margin-top:0;}
   .cat-icon{flex:none;width:15px;height:15px;}
   .cat-icon svg{width:100%;height:100%;}
-  .header-deco{display:flex;justify-content:center;margin-bottom:6px;}
-  .header-deco svg{width:170px;height:28px;}
+  .header-deco{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;}
+  .header-deco-line{
+    width:70px;
+    height:1.4px;
+    background:linear-gradient(90deg, transparent, #D9A441);
+  }
+  .header-deco-line:last-child{
+    background:linear-gradient(90deg, #D9A441, transparent);
+  }
+  .header-deco-dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:#D9A441;
+    flex:none;
+  }
   .complete-badge{
     display:none;
     text-align:center;
@@ -673,19 +687,9 @@
   </div>
   <header>
     <div class="header-deco">
-      <svg viewBox="0 0 180 30" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#D9A441" stroke-width="1.4" stroke-linecap="round">
-        <path d="M4 15 C 30 3, 45 3, 60 15"/>
-        <path d="M63 15 h8"/>
-        <path d="M78 8c-3 3-3 7 0 10 3-3 3-7 0-10Z" fill="#7C8B4A" stroke="#7C8B4A" stroke-width="0.6"/>
-        <path d="M78 13v6" stroke-width="1"/>
-        <circle cx="90" cy="15" r="3.6" fill="#D9A441" stroke="none"/>
-        <path d="M84 11 q6 -7 12 0" stroke-width="1.1"/>
-        <path d="M84 19 q6 7 12 0" stroke-width="1.1"/>
-        <path d="M109 15 h8"/>
-        <path d="M102 8c-3 3-3 7 0 10 3-3 3-7 0-10Z" fill="#7C8B4A" stroke="#7C8B4A" stroke-width="0.6"/>
-        <path d="M102 13v6" stroke-width="1"/>
-        <path d="M120 15 C 135 3, 150 3, 176 15"/>
-      </svg>
+      <span class="header-deco-line"></span>
+      <span class="header-deco-dot"></span>
+      <span class="header-deco-line"></span>
     </div>
     <h1 data-i18n="appTitle">Ernährungsplan</h1>
     <p data-i18n="appSub">Mahlzeiten &amp; Einkauf</p>
