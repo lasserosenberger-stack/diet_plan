@@ -1960,6 +1960,7 @@ function weekDataPath(weekId){
 async function deleteWeek(weekId){
   await firebaseRequest(weekDataPath(weekId), { method: 'DELETE' });
   await firebaseRequest(`${weeksMetaPath()}/${weekId}`, { method: 'DELETE' });
+  try { localStorage.removeItem('dayCollapsed_' + weekId); } catch(e) {}
 }
 
 async function savePlanForWeek(weekId, plan){
