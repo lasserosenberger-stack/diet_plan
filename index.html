@@ -62,6 +62,26 @@
     font-size:13px;
     padding:40px 0;
   }
+  .empty-state{
+    text-align:center;
+    background:var(--paper);
+    border-radius:10px;
+    padding:44px 24px;
+    box-shadow:0 2px 8px rgba(15,20,17,0.25);
+  }
+  .empty-state-icon{font-size:36px; margin-bottom:10px;}
+  .empty-state h2{
+    font-family: Georgia, serif;
+    color:var(--mustard-dark);
+    font-size:19px;
+    margin:0 0 8px;
+  }
+  .empty-state p{
+    color:var(--ink-muted);
+    font-size:13.5px;
+    margin:0 0 20px;
+  }
+  .empty-state .nw-primary{padding:10px 22px; font-size:13.5px;}
   .tab{
     flex:1;
     background:transparent;
@@ -639,6 +659,7 @@
       <option value="de">DE</option>
       <option value="en">EN</option>
     </select>
+    <button class="logout-btn" id="default-goals-btn" data-i18n-title="defaultGoalsTitle" title="Standard-Ziele">&#9881;</button>
     <span id="user-email-display"></span>
     <button class="logout-btn" id="logout-btn" data-i18n="logout">Abmelden</button>
   </div>
@@ -752,6 +773,34 @@
   </div>
 </div>
 
+<div id="default-goals-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h2 class="modal-title" data-i18n="defaultGoalsTitle">Standard-Ziele</h2>
+    <p class="modal-sub" data-i18n="defaultGoalsSub">Diese Werte werden bei jedem neu erstellten Plan automatisch vorausgefüllt.</p>
+
+    <label class="modal-label" data-i18n="dailyKcalGoal">Tagesziel Kalorien</label>
+    <input type="number" id="dg-kcal" value="1537" min="1000" max="4000" step="10">
+
+    <label class="modal-label" data-i18n="dailyProteinGoal">Tagesziel Eiweiß (g)</label>
+    <input type="number" id="dg-protein" value="113" min="30" max="300" step="1">
+
+    <label class="modal-label" data-i18n="dietaryRestrictions">Ernährungseinschränkungen</label>
+    <div class="modal-checks">
+      <label><input type="checkbox" id="dg-veg"> <span data-i18n="vegetarian">Vegetarisch</span></label>
+      <label><input type="checkbox" id="dg-vegan"> <span data-i18n="vegan">Vegan</span></label>
+      <label><input type="checkbox" id="dg-nofish"> <span data-i18n="noFish">Kein Fisch</span></label>
+      <label><input type="checkbox" id="dg-nonuts"> <span data-i18n="noNuts">Keine Nüsse</span></label>
+      <label><input type="checkbox" id="dg-digestive"> <span data-i18n="digestive">Verdauungsschonend</span></label>
+    </div>
+
+    <div class="modal-row">
+      <button class="sync-btn" id="dg-cancel" data-i18n="cancel">Abbrechen</button>
+      <button class="sync-btn nw-primary" id="dg-save" data-i18n="apply">Übernehmen</button>
+    </div>
+    <p id="dg-msg" class="login-msg"></p>
+  </div>
+</div>
+
 <div id="leftover-modal" class="modal-overlay">
   <div class="modal-box">
     <h2 class="modal-title" data-i18n="leftoverTitle">Reste verwerten</h2>
@@ -833,7 +882,7 @@ const I18N = {
     inCart: "Im Wagen", stillLeft: "Noch übrig", purchaseTotal: "gesamt",
     resetPurchase: "Haken für Einkauf {n} zurücksetzen",
     settingsSubGenerated: "Anpassen und mit denselben Gerichten neu berechnen.",
-    settingsSubDefault: "Diese Woche nutzt noch die Standardvorlage. Beim Übernehmen wird ein neuer, individueller Plan erstellt.",
+    settingsSubDefault: "Für diese Woche gibt es noch keinen Plan. Beim Übernehmen wird dein erster individueller Plan erstellt.",
     dishFound: "Gericht gefunden: {name} – wird übernommen…",
     dishNotFound: "Kein passendes Gericht für diese Zutat(en) gefunden – versuch es mit einer anderen Auswahl oder Mahlzeit.",
     error: "Fehler",
@@ -849,6 +898,8 @@ const I18N = {
     saved: "Gespeichert", saving: "Speichert…", saveFailed: "Nicht gespeichert – wird automatisch erneut versucht",
     saveFailBanner: "Das automatische Speichern schlägt seit mehreren Minuten fehl. Bitte Internetverbindung prüfen und die Seite ggf. neu laden.",
     retryBtn: "Erneut versuchen", loadingBtn: "Lädt…",
+    emptyStateTitle: "Noch kein Plan für diese Woche", emptyStateText: "Erstelle deinen ersten individuellen Ernährungs- und Einkaufsplan.", emptyStateBtn: "Ersten Plan erstellen",
+    defaultGoalsTitle: "Standard-Ziele", defaultGoalsSub: "Diese Werte werden bei jedem neu erstellten Plan automatisch vorausgefüllt.", defaultGoalsSaved: "Gespeichert.",
   },
   en: {
     appTitle: "Meal Plan", appSub: "Meals & Shopping",
@@ -876,7 +927,7 @@ const I18N = {
     inCart: "In cart", stillLeft: "Still left", purchaseTotal: "total",
     resetPurchase: "Reset checkmarks for shop {n}",
     settingsSubGenerated: "Adjust and recalculate with the same dishes.",
-    settingsSubDefault: "This week still uses the default template. Applying will generate a new, personalized plan.",
+    settingsSubDefault: "There's no plan for this week yet. Applying will create your first personalized plan.",
     dishFound: "Dish found: {name} – applying…",
     dishNotFound: "No matching dish found for these ingredient(s) – try a different selection or meal.",
     error: "Error",
@@ -892,6 +943,8 @@ const I18N = {
     saved: "Saved", saving: "Saving…", saveFailed: "Not saved – will retry automatically",
     saveFailBanner: "Automatic saving has been failing for several minutes. Please check your internet connection and reload the page if needed.",
     retryBtn: "Retry", loadingBtn: "Loading…",
+    emptyStateTitle: "No plan for this week yet", emptyStateText: "Create your first personalized meal and shopping plan.", emptyStateBtn: "Create first plan",
+    defaultGoalsTitle: "Default goals", defaultGoalsSub: "These values will be pre-filled automatically for every newly created plan.", defaultGoalsSaved: "Saved.",
   }
 };
 
@@ -1111,8 +1164,8 @@ const DEFAULT_DATA = [
   ]}
 ];
 
-let MEALS = DEFAULT_MEALS;
-let DATA = DEFAULT_DATA;
+let MEALS = [];
+let DATA = [];
 let currentPlanIsGenerated = false;
 
 // ==== REZEPT-GENERATOR (Nährwerte, Vorlagen, Skalierung) ====
@@ -1833,6 +1886,29 @@ function weekEatenPath(weekId){
 function xpPath(){
   return `users/${authState.uid}/xp`;
 }
+function userDefaultsPath(){
+  return `users/${authState.uid}/defaults`;
+}
+let userDefaults = { kcalGoal: 1537, proteinGoal: 113, restrictions: {} };
+async function loadUserDefaults(){
+  try {
+    const data = await firebaseRequest(userDefaultsPath());
+    if (data) userDefaults = { kcalGoal: data.kcalGoal || 1537, proteinGoal: data.proteinGoal || 113, restrictions: data.restrictions || {} };
+  } catch(e) {
+    console.warn('Standard-Ziele konnten nicht geladen werden:', e.message);
+  }
+}
+async function saveUserDefaults(){
+  try {
+    await firebaseRequest(userDefaultsPath(), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userDefaults)
+    });
+  } catch(e) {
+    console.warn('Standard-Ziele konnten nicht gespeichert werden:', e.message);
+  }
+}
 function weeksMetaPath(){
   return `users/${authState.uid}/weeksMeta`;
 }
@@ -2080,6 +2156,19 @@ function buildUI(){
   const panelsEl = document.getElementById('panels');
   tabsEl.innerHTML = "";
   panelsEl.innerHTML = "";
+
+  if (!MEALS || MEALS.length === 0) {
+    panelsEl.innerHTML =
+      '<div class="empty-state">' +
+        '<div class="empty-state-icon">&#127869;</div>' +
+        '<h2>' + t('emptyStateTitle') + '</h2>' +
+        '<p>' + t('emptyStateText') + '</p>' +
+        '<button class="sync-btn nw-primary" id="empty-state-btn">' + t('emptyStateBtn') + '</button>' +
+      '</div>';
+    const btn = document.getElementById('empty-state-btn');
+    if (btn) btn.onclick = () => document.getElementById('week-settings-btn').click();
+    return;
+  }
 
   const mealsTab = document.createElement('button');
   mealsTab.className = 'tab' + (currentTabIndex === 0 ? ' active' : '');
@@ -2520,7 +2609,7 @@ function showApp(email){
   applyI18n();
   document.getElementById('tabs').innerHTML = '';
   document.getElementById('panels').innerHTML = '<div class="loading-hint">' + (currentLang === 'en' ? 'Loading…' : 'Lädt…') + '</div>';
-  initWeeks();
+  loadUserDefaults().then(() => initWeeks());
   loadXP();
 }
 
@@ -2661,33 +2750,18 @@ async function applyWeekPlan(weekId){
   try {
     plan = await loadPlanForWeek(weekId);
   } catch(e) {
-    showAppError('Plan konnte nicht geladen werden (' + e.message + ') – zeige Standardvorlage.');
+    showAppError('Plan konnte nicht geladen werden (' + e.message + ').');
   }
   if (isValidPlan(plan)) {
     MEALS = plan.meals;
     DATA = plan.data;
     currentPlanIsGenerated = true;
     hideAppError();
-  } else if (currentLang === 'en') {
-    // Für Englisch keine unübersetzte deutsche Standardvorlage zeigen, stattdessen automatisch generieren.
-    if (plan) showAppError(t('error') + ': invalid saved plan – generating a fresh one.');
-    const generated = generatePlan(1537, 113, {}, null);
-    MEALS = generated.meals;
-    DATA = generated.data;
-    currentPlanIsGenerated = true;
-    if (!weeksMeta[weekId]) weeksMeta[weekId] = {};
-    weeksMeta[weekId].kcalGoal = weeksMeta[weekId].kcalGoal || 1537;
-    weeksMeta[weekId].proteinGoal = weeksMeta[weekId].proteinGoal || 113;
-    weeksMeta[weekId].restrictions = weeksMeta[weekId].restrictions || {};
-    try {
-      await savePlanForWeek(weekId, generated);
-      await saveWeekMeta(weekId, weeksMeta[weekId]);
-    } catch(e) { /* lokal trotzdem anzeigen, auch wenn Speichern fehlschlägt */ }
-    hideAppError();
   } else {
-    if (plan) showAppError('Der gespeicherte Plan dieser Woche war ungültig/leer – zeige Standardvorlage. Über das Zahnrad kannst du eine neue Version erstellen.');
-    MEALS = DEFAULT_MEALS;
-    DATA = DEFAULT_DATA;
+    if (plan) showAppError('Der gespeicherte Plan dieser Woche war ungültig/leer. Über den Button unten kannst du einen neuen erstellen.');
+    else hideAppError();
+    MEALS = [];
+    DATA = [];
     currentPlanIsGenerated = false;
   }
   dayCollapsed = null; // Einklapp-Status für die neu geladene Woche neu bestimmen
@@ -2789,29 +2863,74 @@ document.getElementById('week-next-btn').onclick = () => {
 
 document.getElementById('week-delete-btn').onclick = async () => {
   const ids = sortedWeekIds();
-  if (ids.length <= 1) {
-    alert(t('lastWeekCannotDelete'));
-    return;
-  }
   const meta = weeksMeta[currentWeekId];
   const label = meta ? `${fmtDateDE(parseISODate(meta.start))} – ${fmtDateDE(parseISODate(meta.end))}` : currentWeekId;
   if (!confirm(t('confirmDeleteWeek', {label}))) return;
 
   const idx = ids.indexOf(currentWeekId);
   const deletedId = currentWeekId;
-  const nextId = ids[idx > 0 ? idx - 1 : idx + 1];
+  const nextId = ids.length > 1 ? ids[idx > 0 ? idx - 1 : idx + 1] : null;
 
   try {
     await deleteWeek(deletedId);
     delete weeksMeta[deletedId];
-    await switchToWeek(nextId);
+    if (nextId) {
+      await switchToWeek(nextId);
+    } else {
+      // Letzte verbleibende Woche gelöscht - initWeeks() legt dann automatisch eine frische aktuelle Woche an
+      await initWeeks();
+    }
   } catch(e) {
     alert(t('deleteFailed') + ': ' + e.message);
   }
 };
 
+document.getElementById('default-goals-btn').onclick = () => {
+  document.getElementById('dg-kcal').value = userDefaults.kcalGoal;
+  document.getElementById('dg-protein').value = userDefaults.proteinGoal;
+  const r = userDefaults.restrictions || {};
+  document.getElementById('dg-veg').checked = !!r.vegetarian;
+  document.getElementById('dg-vegan').checked = !!r.vegan;
+  document.getElementById('dg-nofish').checked = !!r.noFish;
+  document.getElementById('dg-nonuts').checked = !!r.noNuts;
+  document.getElementById('dg-digestive').checked = !!r.digestive;
+  document.getElementById('dg-msg').textContent = '';
+  document.getElementById('default-goals-modal').classList.add('show');
+};
+
+document.getElementById('dg-cancel').onclick = () => {
+  document.getElementById('default-goals-modal').classList.remove('show');
+};
+
+document.getElementById('dg-save').onclick = async () => {
+  const msg = document.getElementById('dg-msg');
+  userDefaults = {
+    kcalGoal: parseInt(document.getElementById('dg-kcal').value, 10) || 1537,
+    proteinGoal: parseInt(document.getElementById('dg-protein').value, 10) || 113,
+    restrictions: {
+      vegetarian: document.getElementById('dg-veg').checked,
+      vegan: document.getElementById('dg-vegan').checked,
+      noFish: document.getElementById('dg-nofish').checked,
+      noNuts: document.getElementById('dg-nonuts').checked,
+      digestive: document.getElementById('dg-digestive').checked
+    }
+  };
+  msg.style.color = 'var(--ink-muted)';
+  msg.textContent = t('defaultGoalsSaved');
+  await saveUserDefaults();
+  setTimeout(() => { document.getElementById('default-goals-modal').classList.remove('show'); }, 500);
+};
+
 document.getElementById('week-add-btn').onclick = () => {
   document.getElementById('nw-msg').textContent = '';
+  document.getElementById('nw-kcal').value = userDefaults.kcalGoal;
+  document.getElementById('nw-protein').value = userDefaults.proteinGoal;
+  const r = userDefaults.restrictions || {};
+  document.getElementById('nw-veg').checked = !!r.vegetarian;
+  document.getElementById('nw-vegan').checked = !!r.vegan;
+  document.getElementById('nw-nofish').checked = !!r.noFish;
+  document.getElementById('nw-nonuts').checked = !!r.noNuts;
+  document.getElementById('nw-digestive').checked = !!r.digestive;
   document.getElementById('newweek-modal').classList.add('show');
 };
 
@@ -2821,8 +2940,8 @@ document.getElementById('nw-cancel').onclick = () => {
 
 document.getElementById('nw-generate').onclick = async () => {
   const msg = document.getElementById('nw-msg');
-  const kcal = parseInt(document.getElementById('nw-kcal').value, 10) || 1537;
-  const protein = parseInt(document.getElementById('nw-protein').value, 10) || 113;
+  const kcal = parseInt(document.getElementById('nw-kcal').value, 10) || userDefaults.kcalGoal;
+  const protein = parseInt(document.getElementById('nw-protein').value, 10) || userDefaults.proteinGoal;
   const restrictions = {
     vegetarian: document.getElementById('nw-veg').checked,
     vegan: document.getElementById('nw-vegan').checked,
@@ -2867,9 +2986,9 @@ document.getElementById('nw-generate').onclick = async () => {
 // ==== EINSTELLUNGEN BEARBEITEN (gleiche Gerichte, neue Ziele) ====
 document.getElementById('week-settings-btn').onclick = () => {
   const meta = weeksMeta[currentWeekId] || {};
-  document.getElementById('st-kcal').value = meta.kcalGoal || 1537;
-  document.getElementById('st-protein').value = meta.proteinGoal || 113;
-  const r = meta.restrictions || {};
+  document.getElementById('st-kcal').value = meta.kcalGoal || userDefaults.kcalGoal;
+  document.getElementById('st-protein').value = meta.proteinGoal || userDefaults.proteinGoal;
+  const r = meta.restrictions || userDefaults.restrictions || {};
   document.getElementById('st-veg').checked = !!r.vegetarian;
   document.getElementById('st-vegan').checked = !!r.vegan;
   document.getElementById('st-nofish').checked = !!r.noFish;
@@ -2888,8 +3007,8 @@ document.getElementById('st-cancel').onclick = () => {
 
 document.getElementById('st-apply').onclick = async () => {
   const msg = document.getElementById('st-msg');
-  const kcal = parseInt(document.getElementById('st-kcal').value, 10) || 1537;
-  const protein = parseInt(document.getElementById('st-protein').value, 10) || 113;
+  const kcal = parseInt(document.getElementById('st-kcal').value, 10) || userDefaults.kcalGoal;
+  const protein = parseInt(document.getElementById('st-protein').value, 10) || userDefaults.proteinGoal;
   const restrictions = {
     vegetarian: document.getElementById('st-veg').checked,
     vegan: document.getElementById('st-vegan').checked,
@@ -2926,8 +3045,8 @@ document.getElementById('st-apply').onclick = async () => {
 async function randomizeDayInUI(dayIdx){
   if (!currentPlanIsGenerated) return;
   const meta = weeksMeta[currentWeekId] || {};
-  const kcal = meta.kcalGoal || 1537;
-  const protein = meta.proteinGoal || 113;
+  const kcal = meta.kcalGoal || userDefaults.kcalGoal;
+  const protein = meta.proteinGoal || userDefaults.proteinGoal;
   const restrictions = meta.restrictions || {};
 
   try {
@@ -2947,8 +3066,8 @@ async function randomizeDayInUI(dayIdx){
 async function randomizeSingleMealInUI(dayIdx, slot){
   if (!currentPlanIsGenerated) return;
   const meta = weeksMeta[currentWeekId] || {};
-  const kcal = meta.kcalGoal || 1537;
-  const protein = meta.proteinGoal || 113;
+  const kcal = meta.kcalGoal || userDefaults.kcalGoal;
+  const protein = meta.proteinGoal || userDefaults.proteinGoal;
   const restrictions = meta.restrictions || {};
 
   try {
@@ -3031,8 +3150,8 @@ document.getElementById('lo-apply').onclick = async () => {
 
   try {
     const meta = weeksMeta[currentWeekId] || {};
-    const kcal = meta.kcalGoal || 1537;
-    const protein = meta.proteinGoal || 113;
+    const kcal = meta.kcalGoal || userDefaults.kcalGoal;
+    const protein = meta.proteinGoal || userDefaults.proteinGoal;
     const restrictions = meta.restrictions || {};
 
     const dishesBySlot = currentDay.rows.map((row, s) => {
