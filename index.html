@@ -1797,19 +1797,26 @@ function buildShoppingFromMeals(meals, shoppingDayIndices){
   const firstTripNeeding = {};     // Vorrat: erste Fahrt, die die Zutat braucht
 
   meals.forEach(day => {
-    const tripIdx = tripOfDayIdx[dayIdxOf[day.day]];
-    day.rows.forEach(row => {
+    const dayIdx = dayIdxOf[day.day];
+    const tripIdx = tripOfDayIdx[dayIdx];
+    // Ist dieser Tag selbst ein Einkaufstag? Dann ist morgens beim Frühstück noch nicht eingekauft -
+    // das Frühstück gehört dann zur VORHERIGEN Fahrt, der Rest des Tages (Mittag/Abend/Snack) zur eigenen.
+    const isShoppingDayItself = trips[tripIdx] === dayIdx;
+    const breakfastTripIdx = isShoppingDayItself ? (tripIdx - 1 + numTrips) % numTrips : tripIdx;
+
+    day.rows.forEach((row, slot) => {
+      const useTripIdx = (slot === 0) ? breakfastTripIdx : tripIdx;
       (row._items || []).forEach(([key, grams]) => {
         const n = NUTRI[key];
         if (n.cat === "Vorrat" || n.buyOnce) {
           // Lange haltbare Vorrats-Artikel (Reis, Nudeln, Gewürze, Haferkleie ...) kauft man
           // einmal für die ganze Woche, nicht bei jeder Einkaufsfahrt neu.
           weeklyPantryTotals[key] = (weeklyPantryTotals[key] || 0) + grams;
-          if (firstTripNeeding[key] === undefined) firstTripNeeding[key] = tripIdx;
+          if (firstTripNeeding[key] === undefined) firstTripNeeding[key] = useTripIdx;
         } else {
           // Frische/kühlpflichtige Kategorien: pro Fahrt frisch einkaufen.
-          if (!tripsData[tripIdx][key]) tripsData[tripIdx][key] = 0;
-          tripsData[tripIdx][key] += grams;
+          if (!tripsData[useTripIdx][key]) tripsData[useTripIdx][key] = 0;
+          tripsData[useTripIdx][key] += grams;
         }
       });
     });
