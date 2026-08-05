@@ -545,6 +545,13 @@
     margin-top:6px;
   }
   .week-deficit strong{color:var(--mustard);font-weight:700;}
+  .cheat-budget{
+    text-align:center;
+    font-size:11.5px;
+    color:#A8A290;
+    margin-top:4px;
+  }
+  .cheat-budget strong{color:#D9A441;font-weight:700;}
   .xp-fill{
     height:100%;
     width:0%;
@@ -750,6 +757,7 @@
       <div class="xp-fill" id="xp-fill"></div>
     </div>
     <div class="week-deficit" id="week-deficit"></div>
+    <div class="cheat-budget" id="cheat-budget"></div>
   </div>
 
   <div class="week-picker">
@@ -976,7 +984,7 @@ const I18N = {
     deleteWeek: "Diese Woche löschen", newWeek: "+ Neue Woche",
     totalThisWeek: "Gesamt diese Woche", remainingThisWeek: "Noch übrig diese Woche",
     newWeekTitle: "Neue Woche planen", newWeekSub: "Ein neuer Ernährungs- und Einkaufsplan wird für diese Woche generiert.",
-    dailyKcalGoal: "Tagesziel Kalorien", bmrLabel: "Grundumsatz (kcal)", deficitLabel: "Tagesdefizit-Ziel (kcal)", computedKcalHint: "= {kcal} kcal Tagesziel", weekDeficitActual: "Ist", weekDeficitTarget: "Soll", dailyProteinGoal: "Tagesziel Eiweiß (g)",
+    dailyKcalGoal: "Tagesziel Kalorien", bmrLabel: "Grundumsatz (kcal)", deficitLabel: "Tagesdefizit-Ziel (kcal)", computedKcalHint: "= {kcal} kcal Tagesziel", weekDeficitActual: "Ist", weekDeficitTarget: "Soll", cheatBudgetLabel: "Cheat-Snack-Budget", dailyProteinGoal: "Tagesziel Eiweiß (g)",
     dietaryRestrictions: "Ernährungseinschränkungen",
     vegetarian: "Vegetarisch", vegan: "Vegan", noFish: "Kein Fisch", noNuts: "Keine Nüsse", digestive: "Verdauungsschonend",
     shoppingDaysLabel: "Einkaufstage", dayMon: "Mo", dayTue: "Di", dayWed: "Mi", dayThu: "Do", dayFri: "Fr", daySat: "Sa", daySun: "So",
@@ -1024,7 +1032,7 @@ const I18N = {
     deleteWeek: "Delete this week", newWeek: "+ New week",
     totalThisWeek: "Total this week", remainingThisWeek: "Remaining this week",
     newWeekTitle: "Plan a new week", newWeekSub: "A new meal and shopping plan will be generated for this week.",
-    dailyKcalGoal: "Daily calorie goal", bmrLabel: "Basal metabolic rate (kcal)", deficitLabel: "Daily deficit target (kcal)", computedKcalHint: "= {kcal} kcal daily target", weekDeficitActual: "Actual", weekDeficitTarget: "Target", dailyProteinGoal: "Daily protein goal (g)",
+    dailyKcalGoal: "Daily calorie goal", bmrLabel: "Basal metabolic rate (kcal)", deficitLabel: "Daily deficit target (kcal)", computedKcalHint: "= {kcal} kcal daily target", weekDeficitActual: "Actual", weekDeficitTarget: "Target", cheatBudgetLabel: "Cheat-snack budget", dailyProteinGoal: "Daily protein goal (g)",
     dietaryRestrictions: "Dietary restrictions",
     vegetarian: "Vegetarian", vegan: "Vegan", noFish: "No fish", noNuts: "No nuts", digestive: "Gut on digestion",
     shoppingDaysLabel: "Shopping days", dayMon: "Mon", dayTue: "Tue", dayWed: "Wed", dayThu: "Thu", dayFri: "Fri", daySat: "Sat", daySun: "Sun",
@@ -2631,7 +2639,7 @@ function updateDayCompleteBadge(dayIdx){
 }
 
 // ==== XP & LEVEL-SYSTEM ====
-let xpState = { totalXP: 0, awardedDays: {}, awardedWeeks: {}, highestLevel: 1 };
+let xpState = { totalXP: 0, awardedDays: {}, awardedWeeks: {}, highestLevel: 1, cheatBudget: 0, cheatBudgetByWeek: {} };
 
 async function loadXP(){
   try {
@@ -2640,7 +2648,9 @@ async function loadXP(){
       totalXP: data.totalXP || 0,
       awardedDays: data.awardedDays || {},
       awardedWeeks: data.awardedWeeks || {},
-      highestLevel: data.highestLevel || (Math.floor((data.totalXP || 0) / 500) + 1)
+      highestLevel: data.highestLevel || (Math.floor((data.totalXP || 0) / 500) + 1),
+      cheatBudget: data.cheatBudget || 0,
+      cheatBudgetByWeek: data.cheatBudgetByWeek || {}
     };
   } catch(e) {
     console.warn('XP konnte nicht geladen werden:', e.message);
@@ -2676,6 +2686,14 @@ function updateXPDisplay(){
   fillEl.style.width = (protectedLevel ? 100 : (inLevel / 500 * 100)) + '%';
   fillEl.classList.add('pulse');
   setTimeout(() => fillEl.classList.remove('pulse'), 500);
+
+  const cheatEl = document.getElementById('cheat-budget');
+  if (cheatEl) {
+    const budget = xpState.cheatBudget || 0;
+    cheatEl.innerHTML = budget > 0
+      ? '🍫 ' + t('cheatBudgetLabel') + ': <strong>' + Math.round(budget).toLocaleString(currentLang === 'en' ? 'en-US' : 'de-DE') + ' kcal</strong>'
+      : '';
+  }
 }
 
 async function awardDayXP(dayIdx, dayName){
@@ -2696,6 +2714,16 @@ async function awardDayXP(dayIdx, dayName){
     xpState.awardedWeeks[currentWeekId] = true;
     xpState.totalXP += 150;
     bonusMsg = ' + Wochen-Bonus';
+
+    // Cheat-Snack-Budget: 15% des tatsächlich erreichten Wochendefizits, dauerhaft kontoweit gespeichert.
+    const meta = weeksMeta[currentWeekId];
+    if (meta && meta.bmr) {
+      const weekDeficit = MEALS.reduce((sum, day) => sum + (meta.bmr - (day.total ? day.total.kcal : 0)), 0);
+      const earned = Math.max(0, Math.round(weekDeficit * 0.15));
+      xpState.cheatBudgetByWeek[currentWeekId] = earned;
+      xpState.cheatBudget = (xpState.cheatBudget || 0) + earned;
+      if (earned > 0) bonusMsg += ' + 🍫 ' + earned + ' kcal Cheat-Budget';
+    }
   }
 
   updateXPDisplay();
@@ -2712,6 +2740,12 @@ async function revokeDayXP(dayIdx){
     delete xpState.awardedWeeks[currentWeekId];
     xpState.totalXP = Math.max(0, xpState.totalXP - 150);
     changed = true;
+
+    const earned = xpState.cheatBudgetByWeek && xpState.cheatBudgetByWeek[currentWeekId];
+    if (earned) {
+      xpState.cheatBudget = Math.max(0, (xpState.cheatBudget || 0) - earned);
+      delete xpState.cheatBudgetByWeek[currentWeekId];
+    }
   }
   if (xpState.awardedDays[dayAwardKey]) {
     delete xpState.awardedDays[dayAwardKey];
