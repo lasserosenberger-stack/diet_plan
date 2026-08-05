@@ -552,6 +552,61 @@
     margin-top:4px;
   }
   .cheat-budget strong{color:#D9A441;font-weight:700;}
+  .cheat-budget-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    margin-top:4px;
+    flex-wrap:wrap;
+  }
+  .cheat-budget-row .cheat-budget{margin-top:0;}
+  .cheat-log-btn{
+    background:transparent;
+    border:1px solid #445245;
+    color:#C9C3B4;
+    font-size:11px;
+    padding:3px 9px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  .cheat-log-btn:hover{background:#2C3B31;}
+  .cheat-snacks-section{
+    background:var(--paper);
+    border-radius:10px;
+    padding:14px 16px;
+    margin-top:14px;
+    box-shadow:0 2px 8px rgba(15,20,17,0.25);
+  }
+  .cheat-snacks-section h3{
+    font-family: Georgia, serif;
+    font-size:14px;
+    color:var(--mustard-dark);
+    margin:0 0 8px;
+  }
+  .cheat-snack-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    padding:6px 0;
+    border-bottom:1px dashed var(--paper-line);
+    font-size:12.5px;
+  }
+  .cheat-snack-row:last-child{border-bottom:none;}
+  .cheat-snack-day{font-weight:600;color:var(--mustard-dark);flex:none;width:70px;}
+  .cheat-snack-name{flex:1;color:var(--ink);}
+  .cheat-snack-kcal{flex:none;font-weight:600;color:var(--ink);}
+  .cheat-snack-remove{
+    flex:none;
+    background:transparent;
+    border:none;
+    color:#B5563E;
+    font-size:11px;
+    cursor:pointer;
+    padding:2px 4px;
+  }
+  .cheat-snack-remove:hover{text-decoration:underline;}
   .xp-fill{
     height:100%;
     width:0%;
@@ -757,7 +812,10 @@
       <div class="xp-fill" id="xp-fill"></div>
     </div>
     <div class="week-deficit" id="week-deficit"></div>
-    <div class="cheat-budget" id="cheat-budget"></div>
+    <div class="cheat-budget-row">
+      <div class="cheat-budget" id="cheat-budget"></div>
+      <button class="cheat-log-btn" id="cheat-log-btn" data-i18n="logCheatSnack">🍬 Cheat-Snack eintragen</button>
+    </div>
   </div>
 
   <div class="week-picker">
@@ -865,6 +923,28 @@
       <button class="sync-btn nw-primary" id="st-apply" data-i18n="apply">Übernehmen</button>
     </div>
     <p id="st-msg" class="login-msg"></p>
+  </div>
+</div>
+
+<div id="cheat-log-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h2 class="modal-title" data-i18n="logCheatSnackTitle">Cheat-Snack eintragen</h2>
+    <p class="modal-sub" id="cheat-budget-sub"></p>
+
+    <label class="modal-label" data-i18n="cheatDayLabel">Tag</label>
+    <select id="cs-day"></select>
+
+    <label class="modal-label" data-i18n="cheatNameLabel">Was hast du gegessen?</label>
+    <input type="text" id="cs-name" placeholder="z.B. Schokoriegel" maxlength="60">
+
+    <label class="modal-label" data-i18n="cheatKcalLabel">Kalorien</label>
+    <input type="number" id="cs-kcal" min="1" max="3000" step="10">
+
+    <div class="modal-row">
+      <button class="sync-btn" id="cs-cancel" data-i18n="cancel">Abbrechen</button>
+      <button class="sync-btn nw-primary" id="cs-save" data-i18n="apply">Übernehmen</button>
+    </div>
+    <p id="cs-msg" class="login-msg"></p>
   </div>
 </div>
 
@@ -984,7 +1064,10 @@ const I18N = {
     deleteWeek: "Diese Woche löschen", newWeek: "+ Neue Woche",
     totalThisWeek: "Gesamt diese Woche", remainingThisWeek: "Noch übrig diese Woche",
     newWeekTitle: "Neue Woche planen", newWeekSub: "Ein neuer Ernährungs- und Einkaufsplan wird für diese Woche generiert.",
-    dailyKcalGoal: "Tagesziel Kalorien", bmrLabel: "Grundumsatz (kcal)", deficitLabel: "Tagesdefizit-Ziel (kcal)", computedKcalHint: "= {kcal} kcal Tagesziel", weekDeficitActual: "Ist", weekDeficitTarget: "Soll", cheatBudgetLabel: "Cheat-Snack-Budget", dailyProteinGoal: "Tagesziel Eiweiß (g)",
+    dailyKcalGoal: "Tagesziel Kalorien", bmrLabel: "Grundumsatz (kcal)", deficitLabel: "Tagesdefizit-Ziel (kcal)", computedKcalHint: "= {kcal} kcal Tagesziel", weekDeficitActual: "Ist", weekDeficitTarget: "Soll", cheatBudgetLabel: "Cheat-Snack-Budget", logCheatSnack: "🍬 Cheat-Snack eintragen", logCheatSnackTitle: "Cheat-Snack eintragen",
+    cheatDayLabel: "Tag", cheatNameLabel: "Was hast du gegessen?", cheatKcalLabel: "Kalorien",
+    cheatBudgetAvailable: "Verfügbares Budget: {kcal} kcal", cheatSnacksTitle: "Cheat-Snacks diese Woche",
+    cheatOverBudget: "Achtung: übersteigt dein verfügbares Budget.", cheatRemove: "Entfernen", dailyProteinGoal: "Tagesziel Eiweiß (g)",
     dietaryRestrictions: "Ernährungseinschränkungen",
     vegetarian: "Vegetarisch", vegan: "Vegan", noFish: "Kein Fisch", noNuts: "Keine Nüsse", digestive: "Verdauungsschonend",
     shoppingDaysLabel: "Einkaufstage", dayMon: "Mo", dayTue: "Di", dayWed: "Mi", dayThu: "Do", dayFri: "Fr", daySat: "Sa", daySun: "So",
@@ -1032,7 +1115,10 @@ const I18N = {
     deleteWeek: "Delete this week", newWeek: "+ New week",
     totalThisWeek: "Total this week", remainingThisWeek: "Remaining this week",
     newWeekTitle: "Plan a new week", newWeekSub: "A new meal and shopping plan will be generated for this week.",
-    dailyKcalGoal: "Daily calorie goal", bmrLabel: "Basal metabolic rate (kcal)", deficitLabel: "Daily deficit target (kcal)", computedKcalHint: "= {kcal} kcal daily target", weekDeficitActual: "Actual", weekDeficitTarget: "Target", cheatBudgetLabel: "Cheat-snack budget", dailyProteinGoal: "Daily protein goal (g)",
+    dailyKcalGoal: "Daily calorie goal", bmrLabel: "Basal metabolic rate (kcal)", deficitLabel: "Daily deficit target (kcal)", computedKcalHint: "= {kcal} kcal daily target", weekDeficitActual: "Actual", weekDeficitTarget: "Target", cheatBudgetLabel: "Cheat-snack budget", logCheatSnack: "🍬 Log cheat snack", logCheatSnackTitle: "Log a cheat snack",
+    cheatDayLabel: "Day", cheatNameLabel: "What did you eat?", cheatKcalLabel: "Calories",
+    cheatBudgetAvailable: "Available budget: {kcal} kcal", cheatSnacksTitle: "Cheat snacks this week",
+    cheatOverBudget: "Heads up: this exceeds your available budget.", cheatRemove: "Remove", dailyProteinGoal: "Daily protein goal (g)",
     dietaryRestrictions: "Dietary restrictions",
     vegetarian: "Vegetarian", vegan: "Vegan", noFish: "No fish", noNuts: "No nuts", digestive: "Gut on digestion",
     shoppingDaysLabel: "Shopping days", dayMon: "Mon", dayTue: "Tue", dayWed: "Wed", dayThu: "Thu", dayFri: "Fri", daySat: "Sat", daySun: "Sun",
@@ -2131,6 +2217,38 @@ function weekDataPath(weekId){
   return `users/${authState.uid}/weeks/${weekId}`;
 }
 
+function weekCheatSnacksPath(weekId){
+  return `users/${authState.uid}/weeks/${weekId}/cheatSnacks`;
+}
+
+let cheatSnacks = {}; // { entryId: {dayIdx, name, kcal} } für die aktuell angezeigte Woche
+
+async function loadCheatSnacks(weekId){
+  try {
+    const data = await firebaseRequest(weekCheatSnacksPath(weekId));
+    cheatSnacks = data || {};
+  } catch(e) {
+    console.warn('Cheat-Snacks konnten nicht geladen werden:', e.message);
+    cheatSnacks = {};
+  }
+}
+
+async function saveCheatSnack(weekId, entry){
+  const entryId = 'cs' + Date.now() + Math.floor(Math.random()*1000);
+  cheatSnacks[entryId] = entry;
+  await firebaseRequest(weekCheatSnacksPath(weekId) + '/' + entryId, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(entry)
+  });
+  return entryId;
+}
+
+async function deleteCheatSnack(weekId, entryId){
+  delete cheatSnacks[entryId];
+  await firebaseRequest(weekCheatSnacksPath(weekId) + '/' + entryId, { method: 'DELETE' });
+}
+
 async function deleteWeek(weekId){
   await firebaseRequest(weekDataPath(weekId), { method: 'DELETE' });
   await firebaseRequest(`${weeksMetaPath()}/${weekId}`, { method: 'DELETE' });
@@ -2328,7 +2446,47 @@ function buildMealsPanel(){
       parseInt(row.dataset.dayIdx, 10), parseInt(row.dataset.slot, 10), row
     );
   });
+
+  const cheatSection = document.createElement('div');
+  cheatSection.className = 'cheat-snacks-section';
+  cheatSection.id = 'cheat-snacks-section';
+  cheatSection.style.display = 'none';
+  panel.appendChild(cheatSection);
+
   return panel;
+}
+
+function renderCheatSnacksSection(){
+  const section = document.getElementById('cheat-snacks-section');
+  if (!section) return;
+  const entries = Object.entries(cheatSnacks || {});
+  if (entries.length === 0) { section.style.display = 'none'; section.innerHTML = ''; return; }
+
+  section.style.display = 'block';
+  let html = '<h3>🍬 ' + t('cheatSnacksTitle') + '</h3>';
+  entries
+    .sort((a,b) => (a[1].dayIdx || 0) - (b[1].dayIdx || 0))
+    .forEach(([entryId, entry]) => {
+      const dayName = MEALS[entry.dayIdx] ? dayDisplayName(MEALS[entry.dayIdx].day) : '';
+      html += '<div class="cheat-snack-row">' +
+        '<span class="cheat-snack-day">' + dayName + '</span>' +
+        '<span class="cheat-snack-name">' + entry.name + '</span>' +
+        '<span class="cheat-snack-kcal">' + entry.kcal + ' kcal</span>' +
+        '<button class="cheat-snack-remove" data-entry-id="' + entryId + '">✕ ' + t('cheatRemove') + '</button>' +
+      '</div>';
+    });
+  section.innerHTML = html;
+  section.querySelectorAll('.cheat-snack-remove').forEach(btn => {
+    btn.onclick = async () => {
+      const entryId = btn.dataset.entryId;
+      const kcal = cheatSnacks[entryId] ? cheatSnacks[entryId].kcal : 0;
+      await deleteCheatSnack(currentWeekId, entryId);
+      xpState.cheatBudget = (xpState.cheatBudget || 0) + kcal; // Budget bei Entfernen zurückerstatten
+      updateXPDisplay();
+      await saveXP();
+      renderCheatSnacksSection();
+    };
+  });
 }
 
 let currentTabIndex = 0;
@@ -2384,6 +2542,7 @@ function buildUI(){
   const mealsPanel = buildMealsPanel();
   if (currentTabIndex !== 0) mealsPanel.classList.remove('active');
   panelsEl.appendChild(mealsPanel);
+  renderCheatSnacksSection();
 
   DATA.forEach((einkauf, ei) => {
     const tab = document.createElement('button');
@@ -2979,9 +3138,11 @@ function isValidPlan(plan){
 
 async function applyWeekPlan(weekId){
   eaten = {}; // sofort zurücksetzen, damit nie kurzzeitig veraltete Haken einer anderen Woche angezeigt werden
+  cheatSnacks = {};
   let plan = null;
   try {
-    plan = await loadPlanForWeek(weekId);
+    const results = await Promise.all([loadPlanForWeek(weekId), loadCheatSnacks(weekId)]);
+    plan = results[0];
   } catch(e) {
     showAppError('Plan konnte nicht geladen werden (' + e.message + ').');
   }
@@ -3182,6 +3343,42 @@ function attachBmrLiveUpdate(prefix){
 attachBmrLiveUpdate('nw');
 attachBmrLiveUpdate('st');
 attachBmrLiveUpdate('dg');
+
+document.getElementById('cheat-log-btn').onclick = () => {
+  const daySel = document.getElementById('cs-day');
+  daySel.innerHTML = MEALS.map((day, i) => '<option value="' + i + '">' + dayDisplayName(day.day) + '</option>').join('');
+  document.getElementById('cs-name').value = '';
+  document.getElementById('cs-kcal').value = '';
+  document.getElementById('cs-msg').textContent = '';
+  document.getElementById('cheat-budget-sub').textContent = t('cheatBudgetAvailable', {kcal: Math.round(xpState.cheatBudget || 0)});
+  document.getElementById('cheat-log-modal').classList.add('show');
+};
+
+document.getElementById('cs-cancel').onclick = () => {
+  document.getElementById('cheat-log-modal').classList.remove('show');
+};
+
+document.getElementById('cs-save').onclick = async () => {
+  const msg = document.getElementById('cs-msg');
+  const dayIdx = parseInt(document.getElementById('cs-day').value, 10);
+  const name = document.getElementById('cs-name').value.trim();
+  const kcal = parseInt(document.getElementById('cs-kcal').value, 10);
+
+  if (!name) { msg.style.color = '#B5563E'; msg.textContent = t('cheatNameLabel') + '?'; return; }
+  if (!kcal || kcal <= 0) { msg.style.color = '#B5563E'; msg.textContent = t('cheatKcalLabel') + '?'; return; }
+
+  try {
+    await saveCheatSnack(currentWeekId, { dayIdx, name, kcal });
+    xpState.cheatBudget = (xpState.cheatBudget || 0) - kcal;
+    updateXPDisplay();
+    await saveXP();
+    document.getElementById('cheat-log-modal').classList.remove('show');
+    renderCheatSnacksSection();
+  } catch(e) {
+    msg.style.color = '#B5563E';
+    msg.textContent = t('error') + ': ' + e.message;
+  }
+};
 
 document.getElementById('default-goals-btn').onclick = () => {
   document.getElementById('dg-bmr').value = userDefaults.bmr;
