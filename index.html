@@ -976,7 +976,7 @@ const I18N = {
     deleteWeek: "Diese Woche löschen", newWeek: "+ Neue Woche",
     totalThisWeek: "Gesamt diese Woche", remainingThisWeek: "Noch übrig diese Woche",
     newWeekTitle: "Neue Woche planen", newWeekSub: "Ein neuer Ernährungs- und Einkaufsplan wird für diese Woche generiert.",
-    dailyKcalGoal: "Tagesziel Kalorien", bmrLabel: "Grundumsatz (kcal)", deficitLabel: "Tagesdefizit-Ziel (kcal)", computedKcalHint: "= {kcal} kcal Tagesziel", weekDeficit: "Wochendefizit", dailyProteinGoal: "Tagesziel Eiweiß (g)",
+    dailyKcalGoal: "Tagesziel Kalorien", bmrLabel: "Grundumsatz (kcal)", deficitLabel: "Tagesdefizit-Ziel (kcal)", computedKcalHint: "= {kcal} kcal Tagesziel", weekDeficitActual: "Ist", weekDeficitTarget: "Soll", dailyProteinGoal: "Tagesziel Eiweiß (g)",
     dietaryRestrictions: "Ernährungseinschränkungen",
     vegetarian: "Vegetarisch", vegan: "Vegan", noFish: "Kein Fisch", noNuts: "Keine Nüsse", digestive: "Verdauungsschonend",
     shoppingDaysLabel: "Einkaufstage", dayMon: "Mo", dayTue: "Di", dayWed: "Mi", dayThu: "Do", dayFri: "Fr", daySat: "Sa", daySun: "So",
@@ -1024,7 +1024,7 @@ const I18N = {
     deleteWeek: "Delete this week", newWeek: "+ New week",
     totalThisWeek: "Total this week", remainingThisWeek: "Remaining this week",
     newWeekTitle: "Plan a new week", newWeekSub: "A new meal and shopping plan will be generated for this week.",
-    dailyKcalGoal: "Daily calorie goal", bmrLabel: "Basal metabolic rate (kcal)", deficitLabel: "Daily deficit target (kcal)", computedKcalHint: "= {kcal} kcal daily target", weekDeficit: "Weekly deficit", dailyProteinGoal: "Daily protein goal (g)",
+    dailyKcalGoal: "Daily calorie goal", bmrLabel: "Basal metabolic rate (kcal)", deficitLabel: "Daily deficit target (kcal)", computedKcalHint: "= {kcal} kcal daily target", weekDeficitActual: "Actual", weekDeficitTarget: "Target", dailyProteinGoal: "Daily protein goal (g)",
     dietaryRestrictions: "Dietary restrictions",
     vegetarian: "Vegetarian", vegan: "Vegan", noFish: "No fish", noNuts: "No nuts", digestive: "Gut on digestion",
     shoppingDaysLabel: "Shopping days", dayMon: "Mon", dayTue: "Tue", dayWed: "Wed", dayThu: "Thu", dayFri: "Fri", daySat: "Sat", daySun: "Sun",
@@ -2330,8 +2330,21 @@ function updateWeekDeficitDisplay(){
   if (!el) return;
   const meta = weeksMeta[currentWeekId];
   if (!meta || !meta.bmr || !MEALS || MEALS.length === 0) { el.textContent = ''; return; }
-  const totalDeficit = MEALS.reduce((sum, day) => sum + (meta.bmr - (day.total ? day.total.kcal : 0)), 0);
-  el.innerHTML = t('weekDeficit') + ': <strong>' + (totalDeficit >= 0 ? '-' : '+') + Math.abs(Math.round(totalDeficit)).toLocaleString(currentLang === 'en' ? 'en-US' : 'de-DE') + ' kcal</strong>';
+
+  const fmtDeficit = (v) => (v >= 0 ? '-' : '+') + Math.abs(Math.round(v)).toLocaleString(currentLang === 'en' ? 'en-US' : 'de-DE') + ' kcal';
+
+  const sollDeficit = MEALS.reduce((sum, day) => sum + (meta.bmr - (day.total ? day.total.kcal : 0)), 0);
+
+  const istDeficit = MEALS.reduce((sum, day, dayIdx) => {
+    const isComplete = [0,1,2,3].every(slot => !!eaten[dayIdx + '|' + slot]);
+    if (!isComplete) return sum;
+    return sum + (meta.bmr - (day.total ? day.total.kcal : 0));
+  }, 0);
+
+  el.innerHTML =
+    t('weekDeficitActual') + ': <strong>' + fmtDeficit(istDeficit) + '</strong>' +
+    ' &nbsp;·&nbsp; ' +
+    t('weekDeficitTarget') + ': <strong>' + fmtDeficit(sollDeficit) + '</strong>';
 }
 
 function buildUI(){
@@ -2601,6 +2614,7 @@ async function toggleEaten(dayIdx, slot, row){
 function updateDayCompleteBadge(dayIdx){
   const dayRows = document.querySelectorAll('.meal-row[data-day-idx="' + dayIdx + '"]');
   const allEaten = dayRows.length > 0 && [...dayRows].every(r => r.classList.contains('eaten'));
+  updateWeekDeficitDisplay();
 
   const card = document.querySelector('.day-card[data-day-idx="' + dayIdx + '"]');
   if (card) {
