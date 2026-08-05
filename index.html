@@ -2719,7 +2719,7 @@ async function awardDayXP(dayIdx, dayName){
     const meta = weeksMeta[currentWeekId];
     if (meta && meta.bmr) {
       const weekDeficit = MEALS.reduce((sum, day) => sum + (meta.bmr - (day.total ? day.total.kcal : 0)), 0);
-      const earned = Math.max(0, Math.round(weekDeficit * 0.15));
+      const earned = Math.max(0, Math.round(weekDeficit * 0.10));
       xpState.cheatBudgetByWeek[currentWeekId] = earned;
       xpState.cheatBudget = (xpState.cheatBudget || 0) + earned;
       if (earned > 0) bonusMsg += ' + 🍫 ' + earned + ' kcal Cheat-Budget';
@@ -3065,6 +3065,36 @@ async function initWeeks(){
   updateDebugLine(ids);
   await applyWeekPlan(currentWeekId);
   await loadState();
+  await loadXP(); // sicherstellen, dass xpState geladen ist, bevor nachberechnet wird
+  await reconcileCheatBudget();
+}
+
+// Berechnet das Cheat-Snack-Budget nachträglich für Wochen, die schon VOR Einführung dieses Features
+// (oder aus anderen Gründen) als komplett abgehakt galten, aber noch kein Budget dafür bekommen haben.
+async function reconcileCheatBudget(){
+  const ids = sortedWeekIds();
+  let changed = false;
+  for (const weekId of ids) {
+    if (!xpState.awardedWeeks[weekId]) continue; // Woche war nie als komplett belohnt
+    if (xpState.cheatBudgetByWeek[weekId] !== undefined) continue; // schon berechnet
+    const meta = weeksMeta[weekId];
+    if (!meta || !meta.bmr) continue; // kein Grundumsatz hinterlegt, kann nicht berechnet werden
+    try {
+      const plan = await loadPlanForWeek(weekId);
+      if (!plan || !plan.meals) continue;
+      const weekDeficit = plan.meals.reduce((sum, day) => sum + (meta.bmr - (day.total ? day.total.kcal : 0)), 0);
+      const earned = Math.max(0, Math.round(weekDeficit * 0.10));
+      xpState.cheatBudgetByWeek[weekId] = earned;
+      if (earned > 0) {
+        xpState.cheatBudget = (xpState.cheatBudget || 0) + earned;
+        changed = true;
+      }
+    } catch(e) { /* Plan nicht ladbar - überspringen, beim nächsten Laden erneut versuchen */ }
+  }
+  if (changed) {
+    updateXPDisplay();
+    await saveXP();
+  }
 }
 
 function updateDebugLine(ids){
