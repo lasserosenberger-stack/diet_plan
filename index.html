@@ -571,6 +571,7 @@
     cursor:pointer;
   }
   .cheat-log-btn:hover{background:#2C3B31;}
+  #cs-kcal.input-error{border-color:#B5563E; background:#3A2420;}
   .cheat-snacks-section{
     background:var(--paper);
     border-radius:10px;
@@ -1067,7 +1068,7 @@ const I18N = {
     dailyKcalGoal: "Tagesziel Kalorien", bmrLabel: "Grundumsatz (kcal)", deficitLabel: "Tagesdefizit-Ziel (kcal)", computedKcalHint: "= {kcal} kcal Tagesziel", weekDeficitActual: "Ist", weekDeficitTarget: "Soll", cheatBudgetLabel: "Cheat-Snack-Budget", logCheatSnack: "🍬 Cheat-Snack eintragen", logCheatSnackTitle: "Cheat-Snack eintragen",
     cheatDayLabel: "Tag", cheatNameLabel: "Was hast du gegessen?", cheatKcalLabel: "Kalorien",
     cheatBudgetAvailable: "Verfügbares Budget: {kcal} kcal", cheatSnacksTitle: "Cheat-Snacks diese Woche",
-    cheatOverBudget: "Achtung: übersteigt dein verfügbares Budget.", cheatRemove: "Entfernen", dailyProteinGoal: "Tagesziel Eiweiß (g)",
+    cheatOverBudget: "Das übersteigt dein verfügbares Budget ({available} kcal). Du kannst nur eintragen, was du dir schon verdient hast.", cheatRemove: "Entfernen", dailyProteinGoal: "Tagesziel Eiweiß (g)",
     dietaryRestrictions: "Ernährungseinschränkungen",
     vegetarian: "Vegetarisch", vegan: "Vegan", noFish: "Kein Fisch", noNuts: "Keine Nüsse", digestive: "Verdauungsschonend",
     shoppingDaysLabel: "Einkaufstage", dayMon: "Mo", dayTue: "Di", dayWed: "Mi", dayThu: "Do", dayFri: "Fr", daySat: "Sa", daySun: "So",
@@ -1118,7 +1119,7 @@ const I18N = {
     dailyKcalGoal: "Daily calorie goal", bmrLabel: "Basal metabolic rate (kcal)", deficitLabel: "Daily deficit target (kcal)", computedKcalHint: "= {kcal} kcal daily target", weekDeficitActual: "Actual", weekDeficitTarget: "Target", cheatBudgetLabel: "Cheat-snack budget", logCheatSnack: "🍬 Log cheat snack", logCheatSnackTitle: "Log a cheat snack",
     cheatDayLabel: "Day", cheatNameLabel: "What did you eat?", cheatKcalLabel: "Calories",
     cheatBudgetAvailable: "Available budget: {kcal} kcal", cheatSnacksTitle: "Cheat snacks this week",
-    cheatOverBudget: "Heads up: this exceeds your available budget.", cheatRemove: "Remove", dailyProteinGoal: "Daily protein goal (g)",
+    cheatOverBudget: "This exceeds your available budget ({available} kcal). You can only log what you've already earned.", cheatRemove: "Remove", dailyProteinGoal: "Daily protein goal (g)",
     dietaryRestrictions: "Dietary restrictions",
     vegetarian: "Vegetarian", vegan: "Vegan", noFish: "No fish", noNuts: "No nuts", digestive: "Gut on digestion",
     shoppingDaysLabel: "Shopping days", dayMon: "Mon", dayTue: "Tue", dayWed: "Wed", dayThu: "Thu", dayFri: "Fri", daySat: "Sat", daySun: "Sun",
@@ -3349,9 +3350,23 @@ document.getElementById('cheat-log-btn').onclick = () => {
   daySel.innerHTML = MEALS.map((day, i) => '<option value="' + i + '">' + dayDisplayName(day.day) + '</option>').join('');
   document.getElementById('cs-name').value = '';
   document.getElementById('cs-kcal').value = '';
+  document.getElementById('cs-kcal').classList.remove('input-error');
   document.getElementById('cs-msg').textContent = '';
   document.getElementById('cheat-budget-sub').textContent = t('cheatBudgetAvailable', {kcal: Math.round(xpState.cheatBudget || 0)});
   document.getElementById('cheat-log-modal').classList.add('show');
+};
+
+document.getElementById('cs-kcal').oninput = () => {
+  const kcal = parseInt(document.getElementById('cs-kcal').value, 10) || 0;
+  const over = kcal > (xpState.cheatBudget || 0);
+  document.getElementById('cs-kcal').classList.toggle('input-error', over);
+  const msg = document.getElementById('cs-msg');
+  if (over) {
+    msg.style.color = '#B5563E';
+    msg.textContent = t('cheatOverBudget', {available: Math.round(xpState.cheatBudget || 0)});
+  } else {
+    msg.textContent = '';
+  }
 };
 
 document.getElementById('cs-cancel').onclick = () => {
@@ -3366,6 +3381,11 @@ document.getElementById('cs-save').onclick = async () => {
 
   if (!name) { msg.style.color = '#B5563E'; msg.textContent = t('cheatNameLabel') + '?'; return; }
   if (!kcal || kcal <= 0) { msg.style.color = '#B5563E'; msg.textContent = t('cheatKcalLabel') + '?'; return; }
+  if (kcal > (xpState.cheatBudget || 0)) {
+    msg.style.color = '#B5563E';
+    msg.textContent = t('cheatOverBudget', {available: Math.round(xpState.cheatBudget || 0)});
+    return;
+  }
 
   try {
     await saveCheatSnack(currentWeekId, { dayIdx, name, kcal });
