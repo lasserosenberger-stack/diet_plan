@@ -280,6 +280,7 @@
     white-space:nowrap;
   }
   .dice-btn.leftover-btn{margin-left:6px;}
+  .dice-btn.details-btn{margin-left:6px;}
   .dice-btn:hover{background:var(--check-bg);}
   .cat{
     font-family: Georgia, serif;
@@ -408,6 +409,7 @@
     }
     .dice-btn{ margin-left:0; }
     .dice-btn.leftover-btn{ margin-left:6px; }
+    .dice-btn.details-btn{ margin-left:6px; }
   }
   .meal-header{
     display:grid;
@@ -2275,7 +2277,7 @@ function buildMealsPanel(){
       saveDayCollapsed();
     };
   });
-  panel.querySelectorAll('.dice-btn:not(.leftover-btn)').forEach(btn => {
+  panel.querySelectorAll('.dice-btn:not(.leftover-btn):not(.details-btn)').forEach(btn => {
     btn.onclick = () => randomizeDayInUI(parseInt(btn.dataset.dayIdx, 10));
   });
   panel.querySelectorAll('.leftover-btn').forEach(btn => {
